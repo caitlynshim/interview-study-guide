@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MongoDB Interview Prep
 
-## Getting Started
+A web application to help prepare for MongoDB interviews by providing random interview questions.
 
-First, run the development server:
+## Features
 
+- Random MongoDB interview questions
+- Question categories and difficulty levels
+- Modern, responsive UI
+
+## Prerequisites
+
+- Node.js (v14 or higher)
+- MongoDB (local installation or MongoDB Atlas account)
+- npm or yarn
+
+## Setup
+
+1. Clone the repository:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <your-repo-url>
+cd mongodb-interview-prep
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Set up your MongoDB connection:
+- Create a `.env.local` file in the root directory
+- Add your MongoDB URI:
+```
+MONGODB_URI=your_mongodb_uri_here
+```
+- If using local MongoDB, the default URI is: `mongodb://localhost:27017/interview-prep`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Run the development server:
+```bash
+npm run dev
+```
 
-## Learn More
+The application will be available at [http://localhost:3001](http://localhost:3001)
 
-To learn more about Next.js, take a look at the following resources:
+## Adding Questions
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+You can add questions to the database using the MongoDB shell or a MongoDB GUI tool. The question schema includes:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- question (String, required)
+- category (String, required)
+- difficulty (String: 'easy', 'medium', 'hard')
+- createdAt (Date, auto-generated)
 
-## Deploy on Vercel
+Example question document:
+```json
+{
+  "question": "What is sharding in MongoDB?",
+  "category": "Architecture",
+  "difficulty": "medium"
+}
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Contributing
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Feel free to open issues or submit pull requests to improve the application. 
