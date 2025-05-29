@@ -1,7 +1,7 @@
 {
-  "name": "mongodb-interview-prep",
+  "name": "interview-prep",
   "version": "1.0.0",
-  "description": "MongoDB Interview Preparation Website",
+  "description": "Technical Interview Preparation Website",
   "main": "index.js",
   "scripts": {
     "dev": "next dev -p 3002",

@@ -152,8 +152,7 @@ function parseQuestions(text) {
       line.includes('Customer & Field Focus') ||
       line.includes('Stakeholder & Cross-Org Management') ||
       line.includes('Operational Excellence & Crisis') ||
-      line.includes('Metrics, Data & Decision Quality') ||
-      line.includes('MongoDB-Specific')
+      line.includes('Metrics, Data & Decision Quality')
     )) {
       currentCategory = line.replace(/^\d+\.\s+/, '').trim();
       continue;

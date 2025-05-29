@@ -1,12 +1,13 @@
-# MongoDB Interview Prep
+# Mock Interview Question Generator
 
-A web application to help prepare for MongoDB interviews by providing random interview questions.
+A web application to help prepare for technical interviews by providing random interview questions across different categories.
 
 ## Features
 
-- Random MongoDB interview questions
+- Random interview questions from various categories
 - Question categories and difficulty levels
 - Modern, responsive UI
+- Built with Next.js and MongoDB
 
 ## Prerequisites
 
@@ -19,7 +20,7 @@ A web application to help prepare for MongoDB interviews by providing random int
 1. Clone the repository:
 ```bash
 git clone <your-repo-url>
-cd mongodb-interview-prep
+cd interview-prep
 ```
 
 2. Install dependencies:
@@ -33,29 +34,28 @@ npm install
 ```
 MONGODB_URI=your_mongodb_uri_here
 ```
-- If using local MongoDB, the default URI is: `mongodb://localhost:27017/interview-prep`
 
 4. Run the development server:
 ```bash
 npm run dev
 ```
 
-The application will be available at [http://localhost:3001](http://localhost:3001)
+The application will be available at [http://localhost:3002](http://localhost:3002)
 
-## Adding Questions
+## Question Schema
 
-You can add questions to the database using the MongoDB shell or a MongoDB GUI tool. The question schema includes:
+Questions in the database follow this structure:
 
 - question (String, required)
 - category (String, required)
 - difficulty (String: 'easy', 'medium', 'hard')
 - createdAt (Date, auto-generated)
 
-Example question document:
+Example question:
 ```json
 {
-  "question": "What is sharding in MongoDB?",
-  "category": "Architecture",
+  "question": "Tell me about a time you led a major project.",
+  "category": "Leadership & People",
   "difficulty": "medium"
 }
 ```
