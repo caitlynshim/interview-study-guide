@@ -6,11 +6,12 @@ import { generateEmbedding } from '../lib/openai';
 import dbConnect from '../lib/mongodb';
 
 describe('Vector Search Integration Tests', () => {
-  // Only run these tests if MONGODB_URI is set to an Atlas connection
+  // Only run these tests if MONGODB_URI is set to an Atlas connection and OPENAI_API_KEY is set
   const isAtlasConnection = process.env.MONGODB_URI && process.env.MONGODB_URI.includes('mongodb+srv');
+  const hasOpenAIKey = process.env.OPENAI_API_KEY;
   
-  if (!isAtlasConnection) {
-    it.skip('Skipping vector search tests - requires MongoDB Atlas connection', () => {});
+  if (!isAtlasConnection || !hasOpenAIKey) {
+    it.skip('Skipping vector search tests - requires MongoDB Atlas connection and OpenAI API key', () => {});
     return;
   }
 
@@ -60,13 +61,21 @@ describe('Vector Search Integration Tests', () => {
       }
     ];
 
-    // Generate real embeddings for each test experience
-    for (const exp of testExperiences) {
-      const embedding = await generateEmbedding(exp.title + ' ' + exp.description);
-      exp.embedding = embedding;
-    }
+    try {
+      // Generate real embeddings for each test experience
+      for (const exp of testExperiences) {
+        const embedding = await generateEmbedding(exp.title + ' ' + exp.description);
+        exp.embedding = embedding;
+      }
 
-    await Experience.insertMany(testExperiences);
+      await Experience.insertMany(testExperiences);
+    } catch (error) {
+      if (error.code === 'insufficient_quota') {
+        console.warn('OpenAI API quota exceeded. Skipping tests.');
+        return;
+      }
+      throw error;
+    }
   });
 
   describe('Vector Similarity Search', () => {

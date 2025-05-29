@@ -12,7 +12,8 @@
     "test:watch": "NODE_ENV=test jest --watch",
     "test:integration": "NODE_ENV=test jest -c jest.integration.config.js",
     "test:integration:watch": "NODE_ENV=test jest -c jest.integration.config.js --watch",
-    "update-schema": "node scripts/update-experience-schema.js"
+    "update-schema": "node scripts/update-experience-schema.js",
+    "setup-vector-search": "node scripts/setup-vector-search.js"
   },
   "keywords": [],
   "author": "",
@@ -23,5 +24,8 @@
     "next": "^14.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "node-mocks-http": "^1.14.1"
   }
 }
