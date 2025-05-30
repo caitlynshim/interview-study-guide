@@ -1,0 +1,105 @@
+Test Status Summary
+=================
+
+API Tests (__tests__/api/questions.test.js)
+------------------------------------------
+✓ /api/questions/categories
+  - ✓ should return categories successfully
+  - ✓ should handle database errors
+
+✗ /api/questions/random
+  - ✗ should return a random question without category filter (500 error)
+  - ✗ should return a random question with category filter (500 error)
+  - ✗ should handle no questions found (500 error)
+  - ✓ should handle database errors
+
+OpenAI Integration Tests (__tests__/openai.test.js)
+-------------------------------------------------
+✓ should generate embeddings for a given text (869ms)
+✓ should handle rate limits with exponential backoff (1634ms)
+✓ should handle various text inputs (2167ms)
+  - ✓ empty text
+  - ✓ special characters
+  - ✓ very long text
+  - ✓ multilingual text
+
+Questions Tests (__tests__/questions.test.js)
+-------------------------------------------
+✓ GET /api/questions/random
+  - ✓ should return a random question (134ms)
+  - ✓ should filter by category (93ms)
+
+✓ GET /api/questions/categories
+  - ✓ should return all unique categories (77ms)
+
+API Integration Tests (__tests__/integration/api.test.js)
+------------------------------------------------------
+✗ Failed to run - MongoDB Connection Error
+  Error: Client must be connected before running operations
+
+Experience Tests (__tests__/experiences.test.js)
+---------------------------------------------
+✗ Basic Collection Operations - Failed to run (MongoDB Connection Error)
+  - ✗ should create and retrieve an experience
+  - ✗ should enforce required fields
+
+✗ Vector Search Operations - Failed to run (MongoDB Connection Error)
+  - ✗ should have vector search index
+  - ✗ should perform vector similarity search
+
+✓ POST /api/experiences/add
+  - should create a new experience
+  - should fail with invalid data
+
+[PARTIAL] GET /api/experiences/search
+  - ✓ should return relevant experiences based on query
+  - ✓ should filter experiences by tag
+  - [SKIPPED] should handle empty search results (requires Atlas)
+
+[PARTIAL] Experience Model
+  - ✓ should validate required fields
+  - ✓ should create experience with valid data
+  - [SKIPPED] should perform vector similarity search (requires Atlas)
+
+MongoDB Connection Tests (__tests__/lib/mongodb.test.js)
+----------------------------------------------------
+✗ should connect to MongoDB successfully (TypeError in test)
+✗ should reuse existing connection if available (TypeError in test)
+✗ should handle connection errors (Test assertion failed)
+
+Integration Tests (__tests__/integration/experiences.test.js)
+--------------------------------------------------------
+✗ /api/experiences/search
+  - ✗ should search experiences by query (Validation Error: Embedding dimensions)
+  - ✗ should filter experiences by tags (Validation Error: Embedding dimensions)
+  - ✗ should handle no results (Validation Error: Embedding dimensions)
+  Note: MongoDB Connection Error also present
+
+Server Integration Tests (__tests__/integration/server.test.js)
+----------------------------------------------------------
+✗ should start server and respond to health check (Timeout after 10s)
+✓ should handle invalid routes
+✗ should handle server errors gracefully (Expected 405, got 404)
+Note: Server crashed with ERR_INVALID_THIS error
+
+MongoDB Integration Tests (__tests__/integration/mongodb.test.js)
+------------------------------------------------------------
+✓ should connect to MongoDB successfully
+✓ should reuse existing connection
+✗ should handle connection errors gracefully (Test assertion failed)
+Note: MongoDB Connection Error in test setup
+
+Vector Search Integration Tests (__tests__/vector-search.integration.test.js)
+------------------------------------------------------------------------
+✗ Vector Similarity Search - Failed to run (MongoDB Connection Error)
+  - ✗ should return relevant experiences based on semantic similarity
+  - ✗ should combine vector search with tag filtering
+  - ✗ should handle empty search results gracefully
+  - ✗ should return experiences ordered by semantic similarity
+  Note: Connection setup error - connect is not a function
+
+Legend:
+✓ - Test/Suite implemented and passing
+[SKIPPED] - Test intentionally skipped
+[ATLAS] - Test requires MongoDB Atlas
+[PARTIAL] - Suite partially implemented/skipped 

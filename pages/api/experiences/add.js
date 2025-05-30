@@ -1,5 +1,6 @@
-import { connectToDatabase } from '../../../lib/mongodb';
+import connectToDatabase from '../../../lib/mongodb';
 import Experience from '../../../models/Experience';
+import { generateEmbedding } from '../../../lib/openai';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -18,19 +19,21 @@ export default async function handler(req, res) {
       });
     }
 
+    // Generate embedding from the content
+    const embedding = await generateEmbedding(content);
+
     const experience = new Experience({
       title,
       description,
       content,
-      tags: tags || []
+      tags: tags || [],
+      embedding
     });
 
-    await experience.save();
+    const savedExperience = await experience.save();
 
-    res.status(201).json({
-      success: true,
-      data: experience
-    });
+    // Return the saved experience directly
+    res.status(201).json(savedExperience);
   } catch (error) {
     console.error('Error adding experience:', error);
     res.status(500).json({

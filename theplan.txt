@@ -1,0 +1,115 @@
+Interview Prep RAG Implementation Plan
+===================================
+
+1. MongoDB Atlas Setup [done]
+---------------------
+- Create MongoDB Atlas cluster
+- Configure vector search index for experiences collection
+- Set up environment variables:
+  * MONGODB_URI for Atlas connection
+  * OPENAI_API_KEY for embeddings
+  * Other necessary secrets
+
+2. Data Model & Schema [done]
+---------------------
+- Experience Schema:
+  * id: ObjectId
+  * content: String (the experience text)
+  * embedding: Vector (1536-dimensional for OpenAI embeddings)
+  * metadata:
+    - tags: [String]
+    - date: Date
+    - category: String
+    - role: String
+  * createdAt: Date
+  * updatedAt: Date
+- Indexes:
+  * Vector index for semantic search
+  * Text index for keyword search
+  * Compound indexes for filtering
+
+3. Vector Embedding Pipeline
+---------------------------
+- OpenAI Integration:
+  * Set up API client
+  * Configure rate limiting and retries
+  * Implement embedding generation
+- Processing Pipeline:
+  * Text preprocessing
+  * Chunk management for long texts
+  * Batch embedding generation
+  * Error handling and validation
+
+4. RAG Implementation
+--------------------
+- Semantic Search:
+  * Vector similarity search using Atlas
+  * Hybrid search combining vector and keyword
+  * Results ranking and filtering
+- Context Management:
+  * Smart context window selection
+  * Context merging for multiple results
+- Answer Generation:
+  * Prompt engineering
+  * Response formatting
+  * Citation handling
+
+5. API Endpoints
+---------------
+/api/experiences/add:
+- Add new experiences
+- Generate and store embeddings
+- Validate input
+- Handle metadata
+
+/api/experiences/search:
+- Vector similarity search
+- Filter by metadata
+- Sort and paginate results
+- Combine with keyword search
+
+/api/experiences/generate:
+- Process user query
+- Retrieve relevant context
+- Generate response
+- Include citations
+
+6. Testing & Validation
+----------------------
+- Unit Tests:
+  * Schema validation
+  * Embedding generation
+  * Search functionality
+  * RAG pipeline
+
+- Integration Tests:
+  * API endpoints
+  * MongoDB operations
+  * OpenAI integration
+  * End-to-end flows
+
+- Performance Testing:
+  * Response times
+  * Resource usage
+  * Embedding batch sizes
+  * Search optimization
+
+Next Steps:
+1. Set up MongoDB Atlas and configure vector search
+2. Create the Experience model and schema
+3. Implement the embedding pipeline
+4. Build the RAG system
+5. Add API endpoints
+6. Write tests and validate
+
+Dependencies:
+- MongoDB Atlas (with vector search capability)
+- OpenAI API access
+- Next.js 14+
+- Node.js 18+
+- Required npm packages:
+  * mongodb
+  * mongoose
+  * openai
+  * axios
+  * dotenv 

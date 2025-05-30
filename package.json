@@ -8,10 +8,10 @@
     "build": "next build",
     "start": "next start -p 3002",
     "import-questions": "node scripts/import-questions.js",
-    "test": "NODE_ENV=test jest",
-    "test:watch": "NODE_ENV=test jest --watch",
-    "test:integration": "NODE_ENV=test jest -c jest.integration.config.js",
-    "test:integration:watch": "NODE_ENV=test jest -c jest.integration.config.js --watch",
+    "test": "NODE_ENV=test jest --runInBand",
+    "test:watch": "NODE_ENV=test jest --watch --runInBand",
+    "test:integration": "NODE_ENV=test jest -c jest.integration.config.js --runInBand",
+    "test:integration:watch": "NODE_ENV=test jest -c jest.integration.config.js --watch --runInBand",
     "update-schema": "node scripts/update-experience-schema.js",
     "setup-vector-search": "node scripts/setup-vector-search.js"
   },
@@ -22,6 +22,7 @@
     "dotenv": "^16.5.0",
     "mongoose": "^8.0.0",
     "next": "^14.0.0",
+    "openai": "^4.104.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

@@ -1,6 +1,11 @@
-import '@testing-library/jest-dom';
-import mongoose from 'mongoose';
-import connectToDatabase from './lib/mongodb';
+// Load environment variables first, before any other imports
+process.env.NODE_ENV = 'test';
+require('dotenv').config({ path: '.env.test' });
+
+// Now import other modules after environment variables are loaded
+const mongoose = require('mongoose');
+const connectToDatabase = require('./lib/mongodb');
+require('@testing-library/jest-dom');
 
 // Increase the timeout for async operations
 jest.setTimeout(10000);
