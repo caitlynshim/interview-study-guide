@@ -1,29 +1,42 @@
-import { config } from 'dotenv';
-import { resolve } from 'path';
-const { MongoMemoryServer } = require('mongodb-memory-server');
-const mongoose = require('mongoose');
+import '@testing-library/jest-dom';
+import mongoose from 'mongoose';
+import connectToDatabase from './lib/mongodb';
 
-let mongod;
+// Increase the timeout for async operations
+jest.setTimeout(10000);
 
-// Load environment variables from .env.local
-config({ path: resolve(process.cwd(), '.env.local') });
+let connection;
 
 beforeAll(async () => {
-  mongod = await MongoMemoryServer.create();
-  const uri = mongod.getUri();
-  await mongoose.connect(uri);
+  connection = await connectToDatabase();
 });
 
-afterAll(async () => {
-  await mongoose.disconnect();
-  await mongod.stop();
-});
-
-afterEach(async () => {
+beforeEach(async () => {
+  if (!mongoose.connection || !mongoose.connection.db) {
+    connection = await connectToDatabase();
+  }
+  // Clear all collections before each test
   const collections = await mongoose.connection.db.collections();
   for (let collection of collections) {
     await collection.deleteMany({});
   }
+});
+
+afterEach(async () => {
+  // Ensure all operations are complete
+  const models = Object.values(mongoose.connection.models);
+  await Promise.all(models.map(model => model.deleteMany({})));
+});
+
+afterAll(async () => {
+  // Drop the test database after all tests
+  if (process.env.NODE_ENV === 'test' && mongoose.connection && mongoose.connection.db) {
+    await mongoose.connection.db.dropDatabase();
+  }
+  // Close all connections
+  await mongoose.connection.close();
+  // Clear the cached connection
+  global.mongoose = undefined;
 });
 
 // Set up any other test configurations here 

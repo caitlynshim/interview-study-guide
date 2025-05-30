@@ -1,4 +1,4 @@
-import dbConnect from '../../../lib/mongodb';
+import connectToDatabase from '../../../lib/mongodb';
 import Question from '../../../models/Question';
 
 export default async function handler(req, res) {
@@ -7,7 +7,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    await dbConnect();
+    await connectToDatabase();
     
     // Get unique categories
     const categories = await Question.distinct('category');

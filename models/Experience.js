@@ -1,6 +1,6 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
-const ExperienceSchema = new mongoose.Schema({
+const experienceSchema = new mongoose.Schema({
   title: {
     type: String,
     required: true,
@@ -9,32 +9,44 @@ const ExperienceSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  content: {
+    type: String,
+    required: true,
+  },
+  tags: {
+    type: [String],
+    default: []
+  },
   embedding: {
     type: [Number],
     required: true,
-    index: true, // Will be used for vector search
-  },
-  tags: [{
-    type: String,
-    index: true,
-  }],
-  date: {
-    type: Date,
-    default: Date.now,
+    validate: {
+      validator: function(v) {
+        return v.length === 1536; // text-embedding-3-small dimensions
+      },
+      message: props => `Embedding must have exactly 1536 dimensions`
+    }
   },
   createdAt: {
     type: Date,
-    default: Date.now,
+    default: Date.now
   },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  }
 });
 
-// Create vector search index
-ExperienceSchema.index(
-  { embedding: "2dsphere" },
-  {
-    name: "vector_index",
-    weights: { embedding: 1 }
-  }
-);
+// Add text index for basic text search
+experienceSchema.index({ title: 'text', description: 'text', content: 'text' });
 
-export default mongoose.models.Experience || mongoose.model('Experience', ExperienceSchema); 
+// Add index on tags for filtering
+experienceSchema.index({ tags: 1 });
+
+// Update timestamps on save
+experienceSchema.pre('save', function(next) {
+  this.updatedAt = Date.now();
+  next();
+});
+
+module.exports = mongoose.models.Experience || mongoose.model('Experience', experienceSchema); 

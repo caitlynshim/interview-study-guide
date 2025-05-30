@@ -1,4 +1,4 @@
-import dbConnect from '../../../lib/mongodb';
+import connectToDatabase from '../../../lib/mongodb';
 import Question from '../../../models/Question';
 
 export default async function handler(req, res) {
@@ -7,26 +7,18 @@ export default async function handler(req, res) {
   }
 
   try {
-    await dbConnect();
-    
-    // Build query based on category filter
-    const query = {};
-    if (req.query.category) {
-      query.category = req.query.category;
-    }
-    
-    // Get random question from the filtered set
+    await connectToDatabase();
+
+    const { category } = req.query;
+    const query = category ? { category } : {};
+
     const count = await Question.countDocuments(query);
-    if (count === 0) {
-      return res.status(404).json({ 
-        message: query.category 
-          ? `No questions found in category: ${query.category}` 
-          : 'No questions found'
-      });
-    }
-    
     const random = Math.floor(Math.random() * count);
     const question = await Question.findOne(query).skip(random);
+
+    if (!question) {
+      return res.status(404).json({ message: 'No questions found' });
+    }
 
     res.status(200).json(question);
   } catch (error) {

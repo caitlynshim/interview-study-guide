@@ -1,111 +1,96 @@
-const { MongoClient } = require('mongodb');
-const { generateEmbedding } = require('../lib/openai');
-require('dotenv').config({ path: '.env.local' });
+const mongoose = require('mongoose');
+const { connect } = require('../lib/mongodb');
+const Experience = require('../models/Experience');
 
 describe('Experiences Collection Tests', () => {
-  let client;
   let db;
-  let experiences;
 
   beforeAll(async () => {
-    client = new MongoClient(process.env.MONGODB_URI);
-    await client.connect();
-    db = client.db('interview-prep');
-    experiences = db.collection('experiences');
+    await connect();
+    db = mongoose.connection;
   });
 
   afterAll(async () => {
-    await client.close();
+    await mongoose.disconnect();
   });
 
   beforeEach(async () => {
-    // Clear the collection before each test
-    await experiences.deleteMany({});
+    await Experience.deleteMany({});
   });
 
   describe('Basic Collection Operations', () => {
-    test('should create and retrieve an experience', async () => {
+    it('should create and retrieve an experience', async () => {
       const testExperience = {
+        title: 'Test Experience',
+        description: 'Test Description',
+        content: 'Test Content',
         type: 'technical',
-        content: 'Implemented a real-time chat feature',
-        createdAt: new Date()
+        tags: ['test', 'experience'],
+        embedding: new Array(1536).fill(0.1)
       };
 
-      const result = await experiences.insertOne(testExperience);
-      expect(result.acknowledged).toBe(true);
-
-      const found = await experiences.findOne({ _id: result.insertedId });
-      expect(found.type).toBe(testExperience.type);
-      expect(found.content).toBe(testExperience.content);
+      const experience = await Experience.create(testExperience);
+      expect(experience.title).toBe(testExperience.title);
+      expect(experience.type).toBe(testExperience.type);
+      expect(experience.content).toBe(testExperience.content);
     });
 
-    test('should enforce required fields', async () => {
+    it('should enforce required fields', async () => {
       const invalidExperience = {
-        content: 'Missing type field'
+        title: 'Invalid Experience'
       };
 
-      await expect(experiences.insertOne(invalidExperience))
-        .rejects
-        .toBeTruthy();
+      await expect(Experience.create(invalidExperience)).rejects.toThrow('validation failed');
     });
   });
 
   describe('Vector Search Operations', () => {
-    const sampleExperiences = [
-      {
-        type: 'technical',
-        content: 'Implemented a distributed caching system using Redis',
-        createdAt: new Date()
-      },
-      {
-        type: 'behavioral',
-        content: 'Led a team of five developers to deliver a critical project',
-        createdAt: new Date()
-      },
-      {
-        type: 'technical',
-        content: 'Optimized database queries reducing response time by 50%',
-        createdAt: new Date()
-      }
-    ];
-
     beforeEach(async () => {
-      // Add sample experiences with embeddings
-      const experiencesWithEmbeddings = await Promise.all(
-        sampleExperiences.map(async (exp) => ({
-          ...exp,
-          embedding: await generateEmbedding(exp.content)
-        }))
-      );
-      await experiences.insertMany(experiencesWithEmbeddings);
+      const testExperiences = [
+        {
+          title: 'Database Optimization',
+          description: 'I optimized database queries for better performance',
+          content: 'I improved database performance by adding indexes and optimizing queries.',
+          type: 'technical',
+          tags: ['database', 'optimization'],
+          embedding: new Array(1536).fill(0.1)
+        },
+        {
+          title: 'Team Leadership',
+          description: 'Led a team of developers',
+          content: 'I led a team of 5 developers on a major project.',
+          type: 'leadership',
+          tags: ['leadership', 'management'],
+          embedding: new Array(1536).fill(0.2)
+        }
+      ];
+
+      await Experience.create(testExperiences);
     });
 
-    test('should have vector search index', async () => {
-      const indexes = await experiences.listIndexes().toArray();
+    it('should have vector search index', async () => {
+      const indexes = await db.collection('experiences').listSearchIndexes().toArray();
       const vectorIndex = indexes.find(idx => idx.name === 'vector_search');
       expect(vectorIndex).toBeTruthy();
-      expect(vectorIndex.key).toHaveProperty('embedding');
+      expect(vectorIndex.definition.mappings.fields).toHaveProperty('embedding');
     });
 
-    test('should perform vector similarity search', async () => {
-      const searchText = 'database performance optimization';
-      const embedding = await generateEmbedding(searchText);
-
-      const results = await experiences.aggregate([
+    it('should perform vector similarity search', async () => {
+      const searchVector = new Array(1536).fill(0.1);
+      const results = await Experience.aggregate([
         {
-          $vectorSearch: {
-            index: 'vector_search',
-            path: 'embedding',
-            queryVector: embedding,
-            numCandidates: 10,
-            limit: 3
+          $search: {
+            knnBeta: {
+              vector: searchVector,
+              path: 'embedding',
+              k: 2
+            }
           }
         }
-      ]).toArray();
+      ]).exec();
 
       expect(results.length).toBeGreaterThan(0);
-      // The most relevant result should be about database optimization
-      expect(results[0].content).toContain('database');
+      expect(results[0].title).toBe('Database Optimization');
     });
   });
 }); 

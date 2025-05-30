@@ -1,0 +1,219 @@
+[
+  {
+    "behavioral_theme": "Pushback but Right",
+    "story_label": "Control Tower – Control Catalog",
+    "STAR": {
+      "Situation": "In 2022 I inherited AWS Control Tower. The team’s roadmap was to replicate large portions of the AWS Console inside CT so customers could ‘do everything in one place.’ Velocity was slow and partners didn’t want to wire their services twice.",
+      "Task": "Decide whether to keep the replication strategy or pivot, while defending the decision to senior leadership and a 40-person org that had already invested months.",
+      "Action": "I did a quick usage dive: 80 % of sessions were about guardrails, not the UI clone. I interviewed three strategic customers and partner teams—none wanted a second console; they wanted opinionated controls reusable across accounts. I wrote a two-page pivot doc, presented tradeoffs (5 months of sunk work vs. long-term lock-in) and won VP alignment. We froze non-control features, re-titled the charter to the “Control Catalog,” and built an integration contract so partner services could surface controls once and have them show up automatically in CT.",
+      "Result": "Shipped the first catalog release in 4 months, cut CT’s code surface by 28 %. Adoption jumped 37 % QoQ because customers could see new controls every sprint, and partner onboarding time dropped from 8 to 3 weeks. The pivot freed 15 engineers to work on higher-value guardrails the next half.",
+      "Reflection": "Saying ‘no’ at the right altitude is essential; strategic focus matters more than feature parity."
+    },
+    "key_attributes": ["Strategic clarity", "Backbone (disagree)", "Focus on long-term value", "Data-backed decision"]
+  },
+  {
+    "behavioral_theme": "Wrong and Adjusted",
+    "story_label": "AWS Config Pricing Pivot",
+    "STAR": {
+      "Situation": "When I took over AWS Config in 2021 churn was up 18 %. Field anecdotes said, “Config is just too expensive.”",
+      "Task": "Build a pricing-reduction plan within one quarter to stem churn.",
+      "Action": "Before cutting price I asked the BI team to pull cohort analysis: churn correlated with use-cases that Config was never designed for (inventory scanning, vulnerability surfacing). Governance/audit users were actually price-insensitive. I interviewed five churned customers—every one cited missing features, not cost, as the reason for leaving. I killed the price-cut PRFAQ, re-segmented messaging around ‘governance & audit,’ and spun up a roadmap item to close the biggest feature gap (multi-cloud resource coverage).",
+      "Result": "Churn reversed in two quarters (-12 % net) with **no price change**. Messaging click-through on new landing pages rose 46 %. Feature roadmap landed at re:Inforce with strong analyst pickup.",
+      "Reflection": "Listen to data even when anecdotes are loud; the cheapest discount is the one you never have to ship."
+    },
+    "key_attributes": ["Intellectual honesty", "Data-driven pivot", "Customer segmentation", "Messaging acumen"]
+  },
+  {
+    "behavioral_theme": "Successful Employee Growth",
+    "story_label": "Brady in Governance",
+    "STAR": {
+      "Situation": "Needed a director-level leader to own Service Quotas & Delegated Admin. Internal bench was thin.",
+      "Task": "Hire and grow a senior manager into a visible GM role without slowing deliverables.",
+      "Action": "Recruited Brady (came from a smaller SaaS, great ownership signals). Gave him an explicit 90-day mandate and told peers I’d speak last in his meetings. Spent weekly 1-1s on Amazon mechanisms, pre-briefed him before exec reviews, and literally kept my camera off in early partner calls so he’d own the narrative.",
+      "Result": "By month 6 he ran his own OP1 doc with zero edits. His org eNPS went from 46 → 71. He later promoted to Director and now owns three services.",
+      "Reflection": "Leaders grow fastest when they feel real ownership and have a safe coach behind the curtain."
+    },
+    "key_attributes": ["Talent spotting", "Coaching", "Delegation", "Visibility management"]
+  },
+  {
+    "behavioral_theme": "Failed Employee Growth",
+    "story_label": "GM Hire Didn’t Land",
+    "STAR": {
+      "Situation": "Hired a GM with strong product résumé to balance a deeply technical team. References were mixed but I took the bet.",
+      "Task": "Ramp him in 6 months to own a new product line.",
+      "Action": "First tried heavy 1-1 coaching and review of every doc he produced. He still couldn’t dig into service internals and the team bypassed him. I stopped shielding him—allowed controlled failures in front of peers, gathered multi-rater feedback, made expectations explicit.",
+      "Result": "Performance didn’t improve; he chose to leave at month 8. Replaced with internal SDM who is now a Director. Team trust recovered quickly.",
+      "Reflection": "Leader bets require exit criteria; over-support can infantilize and delay the inevitable."
+    },
+    "key_attributes": ["Hiring judgment", "Candid feedback", "Cutting losses", "Culture protection"]
+  },
+  {
+    "behavioral_theme": "Simplified Something Complex",
+    "story_label": "AWS Config Infra Consolidation",
+    "STAR": {
+      "Situation": "Config had three historical micro-services all converting resource models; each feature touched all three, doubling dev & ops.",
+      "Task": "Consolidate without customer downtime.",
+      "Action": "Mapped call graphs, chose the most stable path, created shims for the other two. Ran a dark-launch migration toggled by account-IDs; rolled 10 % chunks weekly with automated diff checks.",
+      "Result": "Cut operational tickets by 65 %, reduced feature delivery time ~30 %, and saved \$1.4 M/yr in EC2 & Lambda spend.",
+      "Reflection": "Deletion is the highest ROI feature—if you can prove safety with metrics."
+    },
+    "key_attributes": ["Platform discipline", "Operational excellence", "Cost efficiency"]
+  },
+  {
+    "behavioral_theme": "Deep Org Misalignment",
+    "story_label": "JWCC Contract Rescue",
+    "STAR": {
+      "Situation": "AWS bidding on a high-visibility DoD cloud (JWCC). A sister team committed to a SaaS partner that couldn’t meet FedRAMP timeline.",
+      "Task": "Avoid public miss; deliver a viable solution inside 5 months.",
+      "Action": "Negotiated with the vendor to host inside AWS GovCloud (1/6 original cost), embedded two engineers to harden their code, drafted an off-ramp plan to native AWS service post-MVP, and ran bi-weekly EVP readouts.",
+      "Result": "Met contract award deadline; customer feedback favored AWS-native path which we completed the next renewal. Saved mid-millions vs. original PO.",
+      "Reflection": "In crisis, speed ≠ shortcuts; it’s aligning incentives and contingency paths."
+    },
+    "key_attributes": ["Cross-org influence", "Negotiation", "Crisis delivery"]
+  },
+  {
+    "behavioral_theme": "Innovation Bet",
+    "story_label": "Weirwood – Automated Reasoning Controls",
+    "STAR": {
+      "Situation": "Config controls were hand-written; each took ~2 months and human bugs slipped into production.",
+      "Task": "Double control count in a year without doubling headcount.",
+      "Action": "Partnered with the Automated Reasoning group (Weirwood). Re-allocated 6 FTE from roadmap to build a DSL + checker. Took risk that AR would work; interim roadmap items paused.",
+      "Result": "Control authoring time dropped from 60 days to 2 days, controls doubled YoY, and defect rate went to zero (provably correct). Re:Inforce launch widely cited by analysts.",
+      "Reflection": "Strategic bets need calculated runway and explicit pause on “good enough” features."
+    },
+    "key_attributes": ["Bold innovation", "Resource re-allocation", "Technical foresight"]
+  },
+  {
+    "behavioral_theme": "Rebuilt Trust",
+    "story_label": "Domain Controls Enterprise Customer",
+    "STAR": {
+      "Situation": "Fortune 50 customer escalating about governance; asks were scattered and morale low.",
+      "Task": "Identify root blocker and restore partnership.",
+      "Action": "Held working sessions mapping their current account-creation flow; surfaced that domain controls (block rogue account creation) was missing. Shared internal roadmap monthly, gave them preview APIs, and negotiated interim guardrails.",
+      "Result": "Escalations stopped in 1 quarter; customer became launch design partner for domain controls GA.",
+      "Reflection": "Transparency converts frustration into co-development."
+    },
+    "key_attributes": ["Customer obsession", "Strategic empathy", "Roadmap transparency"]
+  },
+  {
+    "behavioral_theme": "Crisis Response",
+    "story_label": "Audit Manager Control Failure",
+    "STAR": {
+      "Situation": "Team released a large control set; post-launch tests showed majority inaccurate. Leader had known and launched anyway.",
+      "Task": "Protect customer trust, fix data already in customer reports, and repair culture.",
+      "Action": "Immediate code-freeze; stopped new data generation. Ran 24×7 triage bridge, classified data into retractable vs. customer-owned, issued comms through TAMs and public RCA. Instituted 3-level publish approval and dismissed the leader.",
+      "Result": "Refunded affected charges, revenue cut ~50 % next Q but trust metrics recovered; no visible press fallout. Control accuracy now 99.98 %.",
+      "Reflection": "Speed is reversible; trust debt isn’t. In crises you over-communicate and reset accountability."
+    },
+    "key_attributes": ["Crisis leadership", "Customer trust", "Cultural reset"]
+  },
+  {
+    "behavioral_theme": "Prioritized Under Constraints",
+    "story_label": "Config Reset vs. Roadmap",
+    "STAR": {
+      "Situation": "Config stability issues, partner distrust, mounting security debt—but sales wanted features.",
+      "Task": "Re-prioritize H2 roadmap under headcount freeze.",
+      "Action": "Held 3-day planning offsite, scored items on customer impact vs. debt reduction. Paused 7 feature PRFAQs, redirected 60 % of capacity to infra, and created weekly partner health sync.",
+      "Result": "Stability tickets down 40 % in a quarter; partner teams unblocked their re:Inforce launches; features returned with higher velocity next half.",
+      "Reflection": "Sometimes the bravest roadmap is ‘stop shipping.’"
+    },
+    "key_attributes": ["Strategic discipline", "Long-term focus", "Stakeholder management"]
+  },
+  {
+    "behavioral_theme": "Influence Without Authority",
+    "story_label": "AWS Orgs Internal Adoption",
+    "STAR": {
+      "Situation": "Internal service teams didn’t feel multi-account pain; resisted integrating with Organizations.",
+      "Task": "Drive adoption without direct authority.",
+      "Action": "Collected external-customer escalations, built a metrics dashboard showing services with org-aware APIs grew 1.8× faster. Presented in monthly service GM meeting, offered sdk stub to cut integration to <2 days.",
+      "Result": "Integration backlog filled in 3 months; 12 services shipped org support the next semester.",
+      "Reflection": "Let customer voice and data speak; peer teams trust evidence over org charts."
+    },
+    "key_attributes": ["Persuasion", "Customer data leverage", "Ecosystem thinking"]
+  },
+  {
+    "behavioral_theme": "Changed Course with Data",
+    "story_label": "Config Messaging over Price",
+    "STAR": {
+      "Situation": "Same as pricing story above—initial assumption = ‘too expensive.’",
+      "Task": "Course-correct strategy fast.",
+      "Action": "Cohort churn analysis, customer interviews, pivoted messaging from cost to governance value.",
+      "Result": "Churn reversed without price change, adoption up. (See detailed numbers in previous story.)",
+      "Reflection": "Data > gut, even when narrative feels obvious."
+    },
+    "key_attributes": ["Evidence-based pivot", "Rapid iteration"]
+  },
+  {
+    "behavioral_theme": "Long Game / Timing",
+    "story_label": "Boost Proposal – Revived",
+    "STAR": {
+      "Situation": "Proposed ‘Boost’ platform to simplify onboarding; required three orgs’ capacity. Peer teams deprioritized; shelved.",
+      "Task": "Keep idea alive without burning capital.",
+      "Action": "Documented design, kept light prototype alive. Two years later Gen-AI onboarding escalation arose; surfaced Boost as ready answer, secured out-of-band funding.",
+      "Result": "Shipped same year; now >10 services integrate. Idea value appreciated precisely when timing matched org goals.",
+      "Reflection": "Strategic patience + readiness beats forcing alignment too early."
+    },
+    "key_attributes": ["Timing sense", "Persistence", "Opportunity readiness"]
+  },
+  {
+    "behavioral_theme": "Scaling Through Others",
+    "story_label": "Delegation Framework + Partner Launch",
+    "STAR": {
+      "Situation": "Org grew to 450 people; couldn’t dive deep everywhere.",
+      "Task": "Create a repeatable delegation model.",
+      "Action": "Defined three engagement tiers (Hands-on, Review, Trust). Daily stand-up only for ‘one-way-door’ partner launch; skipped camera or meetings where leader needed to own room; installed metric/1-1 feedback loops and kept 2 hrs/day open for on-call unblock.",
+      "Result": "Org executed 30 % more features YoY; leaders reported +15 pt autonomy in survey.",
+      "Reflection": "Scaling is deciding where NOT to be, and showing up instantly when it matters."
+    },
+    "key_attributes": ["Leverage", "Situational depth", "Autonomy culture"]
+  },
+  {
+    "behavioral_theme": "Product Intuition Over Data",
+    "story_label": "AWS Orgs Primitive & KTLO Transition",
+    "STAR": {
+      "Situation": "Customers asked for isolated fixes (sharing RIs, extra IAM roles). Data sparse. Separately, a plateaued service had 70 devs with low growth.",
+      "Task": "Invent a unifying primitive (Orgs) and decide to down-scale the low-ROI service on imperfect metrics.",
+      "Action": "Identified account groups as root abstraction; built Org Units. For KTLO: scoped two-phase reduction from 70→30→10, created comms plan, executed fast to quell rumor.",
+      "Result": "Orgs became backbone for 90 % enterprise governance. KTLO product maintained with 10 devs; freed 60 HC for higher-impact roadmap.",
+      "Reflection": "Perfect telemetry is rare; bias for primitives and clear people plans mitigates ambiguity."
+    },
+    "key_attributes": ["Vision under ambiguity", "Judgment", "Change leadership"]
+  },
+  {
+    "behavioral_theme": "Technical Trade-offs",
+    "story_label": "Cloud Directory Miss & Config Feed Hit",
+    "STAR": {
+      "Situation": "Org launch mandated immature Cloud Directory datastore; later Config’s data-feed project risked over-scope.",
+      "Task": "Choose datastore (wrong) and scope data-feed (right).",
+      "Action": "Accepted CD to hit timeline—later 4-yr migration pain. In Config, broke project into free-feed first, designed forward-compatible schema.",
+      "Result": "CD migration still ongoing (cost >4 engineer-years). Config feed shipped on time, partner unblocked, follow-ups faster.",
+      "Reflection": "Foundational tech bets must account for cost-to-unwind; scope control can bank wins without legacy pain."
+    },
+    "key_attributes": ["Architectural judgment", "Cost awareness", "Learning from mistakes"]
+  },
+  {
+    "behavioral_theme": "Executive Conflict",
+    "story_label": "Pricing Model Disagreement",
+    "STAR": {
+      "Situation": "Peer SVP wanted ultra-simple pricing for new product; risked double-charging vs. pay-as-you-go principle.",
+      "Task": "Challenge, yet keep relationship; escalate if needed.",
+      "Action": "Held private 1-1 with data; still disagreed. Drafted balanced doc (both options, metrics, customer impact), escalated to shared boss/CEO. Ensured doc was data-tight (team fact-check). Declared I will disagree-and-commit.",
+      "Result": "Decision pending (loop closes after CEO review). Regardless, peers respect data-driven approach; trust intact.",
+      "Reflection": "Principled escalation + commit shows you optimize for company, not ego."
+    },
+    "key_attributes": ["Principled conflict", "Customer trust advocacy", "Escalation mechanics"]
+  },
+  {
+    "behavioral_theme": "Field Alignment / Unblock",
+    "story_label": "Multi-Org Pain",
+    "STAR": {
+      "Situation": "Field teams pressed for multi-organization support; I thought long-term solver would obviate need.",
+      "Task": "Validate pain vs. roadmap reality.",
+      "Action": "Shadowed TAM calls, quantified ticket volume, realized nuanced real-world blockers. Defined interim solution + committed to long-term feature.",
+      "Result": "Interim shipped in 3 months, ticket volume -40 %. Full solution in beta now.",
+      "Reflection": "Field signal surfaces real-world friction faster than roadmap ideals."
+    },
+    "key_attributes": ["Humility", "Field partnership", "Iterative delivery"]
+  }
+]
+

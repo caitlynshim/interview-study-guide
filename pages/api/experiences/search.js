@@ -1,6 +1,5 @@
-import dbConnect from '../../../lib/mongodb';
+import connectToDatabase from '../../../lib/mongodb';
 import Experience from '../../../models/Experience';
-import { generateEmbedding } from '../../../lib/openai';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -8,55 +7,34 @@ export default async function handler(req, res) {
   }
 
   try {
-    await dbConnect();
-    
-    const { q: query, tags } = req.query;
-    
-    // Generate embedding for the search query
-    const searchEmbedding = await generateEmbedding(query);
+    await connectToDatabase();
 
-    // Build the aggregation pipeline
-    const pipeline = [
-      {
-        $search: {
-          knnBeta: {
-            vector: searchEmbedding,
-            path: 'embedding',
-            k: 10, // Return top 10 matches
-          }
-        }
-      }
-    ];
+    const { query, tags } = req.query;
+    const filter = {};
 
-    // Add tag filtering if specified
-    if (tags) {
-      const tagArray = Array.isArray(tags) ? tags : [tags];
-      pipeline.push({
-        $match: {
-          tags: { $in: tagArray }
-        }
-      });
+    // Add text search if query is provided
+    if (query) {
+      filter.$text = { $search: query };
     }
 
-    // Add projection to include score
-    pipeline.push({
-      $project: {
-        _id: 1,
-        title: 1,
-        description: 1,
-        tags: 1,
-        date: 1,
-        score: { $meta: "searchScore" }
-      }
-    });
+    // Add tags filter if provided
+    if (tags) {
+      filter.tags = { $all: tags.split(',') };
+    }
 
-    const results = await Experience.aggregate(pipeline);
-    res.status(200).json(results);
+    const experiences = await Experience.find(filter)
+      .sort({ createdAt: -1 })
+      .limit(20);
+
+    res.status(200).json({
+      success: true,
+      data: experiences
+    });
   } catch (error) {
     console.error('Error searching experiences:', error);
-    res.status(500).json({ 
-      message: 'Failed to search experiences', 
-      details: error.message || 'Unknown error'
+    res.status(500).json({
+      success: false,
+      message: 'Error searching experiences'
     });
   }
 } 

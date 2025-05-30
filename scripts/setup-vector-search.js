@@ -10,60 +10,68 @@ async function setupVectorSearch() {
 
     const db = client.db('interview-prep');
     
-    // List all collections
-    const collections = await db.listCollections().toArray();
-    console.log('Existing collections:', collections.map(c => c.name));
-    
-    const experiencesCollection = collections.find(c => c.name === 'experiences');
-
-    if (!experiencesCollection) {
-      console.log('Experiences collection not found. Creating it...');
-      await db.createCollection('experiences');
-      console.log('Created experiences collection');
-    } else {
-      console.log('Found existing experiences collection');
-    }
-
-    // Check if vector search index already exists
-    const indexes = await db.collection('experiences').listIndexes().toArray();
-    console.log('Existing indexes:', indexes.map(idx => idx.name));
-    
-    const vectorIndex = indexes.find(idx => idx.name === 'vector_search');
-
-    if (vectorIndex) {
-      console.log('Vector search index already exists');
-      process.exit(0);
+    // Check if Atlas Search is enabled
+    try {
+      await db.collection('experiences').listSearchIndexes().toArray();
+    } catch (error) {
+      if (error.message.includes('command listSearchIndexes is not supported')) {
+        console.error('Error: Atlas Search is not enabled for this cluster.');
+        console.log('Please enable Atlas Search in your MongoDB Atlas dashboard:');
+        console.log('1. Go to your Atlas cluster');
+        console.log('2. Click on "Search" tab');
+        console.log('3. Click "Create Search Index"');
+        process.exit(1);
+      }
     }
 
     // Create vector search index
-    const result = await db.collection('experiences').createIndex(
-      { embedding: "vector" },
-      {
-        name: "vector_search",
-        vectorSearchOptions: {
-          numDimensions: 1536, // Dimensions for text-embedding-3-small model
-          similarity: "cosine"  // Use cosine similarity for text embeddings
+    const indexDefinition = {
+      name: "vector_search",
+      definition: {
+        mappings: {
+          dynamic: true,
+          fields: {
+            embedding: {
+              dimensions: 1536,
+              similarity: "cosine",
+              type: "knnVector"
+            }
+          }
         }
       }
-    );
+    };
 
-    console.log('Vector search index created:', result);
+    // Check for existing index
+    const existingIndexes = await db.collection('experiences').listSearchIndexes().toArray();
+    const existingVectorIndex = existingIndexes.find(idx => idx.name === 'vector_search');
 
-    // Verify the index was created
-    const updatedIndexes = await db.collection('experiences').listIndexes().toArray();
-    const createdIndex = updatedIndexes.find(idx => idx.name === 'vector_search');
-
-    if (!createdIndex) {
-      throw new Error('Failed to verify index creation');
+    if (existingVectorIndex) {
+      console.log('Found existing vector search index. Recreating...');
+      await db.collection('experiences').dropSearchIndex('vector_search');
+      console.log('Dropped existing vector search index');
     }
 
-    console.log('Vector search index verified and ready to use');
+    console.log('Creating new vector search index...');
+    await db.collection('experiences').createSearchIndex(indexDefinition);
+    console.log('Created vector search index');
+
+    // Verify the index was created
+    const indexes = await db.collection('experiences').listSearchIndexes().toArray();
+    const vectorIndex = indexes.find(idx => idx.name === 'vector_search');
+    
+    if (vectorIndex) {
+      console.log('Vector search index verified:');
+      console.log(JSON.stringify(vectorIndex, null, 2));
+    } else {
+      throw new Error('Vector search index not found after creation');
+    }
+
   } catch (error) {
     console.error('Error setting up vector search:', error);
-    process.exit(1);
+    throw error;
   } finally {
     await client.close();
   }
 }
 
-setupVectorSearch(); 
+setupVectorSearch().catch(console.error); 

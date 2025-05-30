@@ -1,0 +1,146 @@
+Interview Prep Application Architecture
+=====================================
+
+Overview
+--------
+A Next.js application for interview preparation with MongoDB Atlas integration. The application serves interview questions and experiences through a RESTful API, with a modern web interface for interaction.
+
+Tech Stack
+----------
+- Frontend: Next.js 14.2.29
+- Backend: Next.js API Routes
+- Database: MongoDB Atlas
+- Testing: Jest
+- Styling: styled-jsx (built into Next.js)
+
+Key Dependencies
+--------------
+- next: ^14.2.29
+- react
+- react-dom
+- mongodb
+- mongoose
+- jest
+- @testing-library/react
+- @testing-library/jest-dom
+- babel-jest
+- styled-jsx
+
+Project Structure
+---------------
+/
+├── pages/                    # Next.js pages and API routes
+│   ├── api/                  # API endpoints
+│   │   └── questions/        # Question-related endpoints
+│   │       ├── categories.js # Get question categories
+│   │       └── random.js     # Get random questions
+├── models/                   # Mongoose models
+│   ├── Question.js          # Question schema and model
+│   └── Experience.js        # Experience schema and model
+├── lib/                     # Shared utilities
+│   └── mongodb.js          # MongoDB connection handling
+├── __tests__/              # Test files
+│   ├── api/                # API tests
+│   ├── integration/        # Integration tests
+│   └── lib/               # Library tests
+└── styles/                 # CSS and styling files
+
+Database Configuration
+--------------------
+- MongoDB Atlas cluster required
+- Connection string in .env.local:
+  MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<database>?retryWrites=true&w=majority
+
+API Endpoints
+------------
+1. GET /api/questions/categories
+   - Returns list of unique question categories
+   - No parameters required
+
+2. GET /api/questions/random
+   - Returns a random question
+   - Optional query parameter: category
+
+Server Operations
+---------------
+1. Start Development Server:
+   ```
+   PORT=3002 npm run dev &
+   ```
+   Server runs on http://localhost:3002
+
+2. Stop Server:
+   ```
+   lsof -i :3002 | grep LISTEN | awk '{print $2}' | xargs kill -9
+   ```
+
+3. Clean and Restart:
+   ```
+   rm -rf .next && PORT=3002 npm run dev &
+   ```
+
+Testing
+-------
+1. Run All Tests:
+   ```
+   npm test
+   ```
+
+2. Run Integration Tests:
+   ```
+   npm run test:integration
+   ```
+
+3. Test Configuration:
+   - jest.config.js: Unit test configuration
+   - jest.integration.config.js: Integration test configuration
+   - jest.setup.js: Test setup and teardown
+
+Test Environment
+---------------
+- Separate test database recommended
+- Tests use jest-environment-node
+- MongoDB memory server for integration tests
+- Cleanup happens in afterEach and afterAll hooks
+
+Debugging
+--------
+1. Server Logs:
+   - Check Next.js server output
+   - MongoDB connection errors
+   - API endpoint errors
+
+2. Common Issues:
+   - Port 3002 conflicts: Use kill command above
+   - MongoDB connection: Check .env.local configuration
+   - Invalid database name: Ensure proper URL encoding
+   - API handler exports: Verify default exports
+
+Development Workflow
+------------------
+1. Start server in background
+2. Run tests to verify functionality
+3. Monitor logs for errors
+4. Use proper cleanup when stopping server
+
+Security Considerations
+---------------------
+1. MongoDB Atlas credentials in .env.local
+2. API rate limiting recommended
+3. Input validation on all endpoints
+4. Proper error handling and logging
+
+Performance Optimization
+----------------------
+1. MongoDB connection pooling
+2. Next.js automatic optimization
+3. API response caching where appropriate
+4. Proper database indexing
+
+Maintenance
+----------
+1. Regular dependency updates
+2. MongoDB Atlas monitoring
+3. Error log review
+4. Performance metrics tracking
+5. Regular backup verification 
