@@ -112,7 +112,31 @@ export default function NavigateExperiences() {
                   <div className="spring-experience-title">{exp.title}</div>
                   <div className="spring-experience-category">{exp.behavioralTheme || 'Uncategorized'}</div>
                   {expandedId === exp._id ? (
-                    <div className="spring-experience-content" style={{ whiteSpace: 'pre-line', marginTop: '0.7rem' }}>{exp.content}</div>
+                    <div className="spring-experience-details">
+                      <div className="spring-experience-content" style={{ whiteSpace: 'pre-line', marginTop: '0.7rem' }}>{exp.content}</div>
+                      {exp.metadata && (
+                        <div className="spring-experience-metadata">
+                          {exp.metadata.tags && exp.metadata.tags.length > 0 && (
+                            <div><strong>Tags:</strong> {exp.metadata.tags.join(', ')}</div>
+                          )}
+                          {exp.metadata.category && (
+                            <div><strong>Category:</strong> {exp.metadata.category}</div>
+                          )}
+                          {exp.metadata.role && (
+                            <div><strong>Role:</strong> {exp.metadata.role}</div>
+                          )}
+                          {exp.metadata.date && (
+                            <div><strong>Date:</strong> {new Date(exp.metadata.date).toLocaleDateString()}</div>
+                          )}
+                        </div>
+                      )}
+                      <div className="spring-experience-meta-dates">
+                        <span><strong>Created:</strong> {exp.createdAt ? new Date(exp.createdAt).toLocaleDateString() : ''}</span>
+                        {exp.updatedAt && exp.updatedAt !== exp.createdAt && (
+                          <span style={{ marginLeft: '1.2rem' }}><strong>Updated:</strong> {new Date(exp.updatedAt).toLocaleDateString()}</span>
+                        )}
+                      </div>
+                    </div>
                   ) : (
                     <div className="spring-experience-content" style={{ color: SPRING.gray, fontStyle: 'italic', marginTop: '0.7rem' }}>
                       {exp.content.slice(0, 120)}{exp.content.length > 120 ? '…' : ''}
@@ -263,6 +287,15 @@ export default function NavigateExperiences() {
           font-size: 1.1rem;
           margin-top: 1.2rem;
         }
+        .spring-experience-details {
+          margin-top: 0.7rem;
+        }
+        .spring-experience-metadata {
+          margin-top: 0.7rem;
+        }
+        .spring-experience-meta-dates {
+          margin-top: 0.7rem;
+        }
         @media (max-width: 700px) {
           .spring-navbar {
             flex-direction: column;
@@ -293,6 +326,19 @@ if (typeof describe === 'function') {
       expect(extractBehavioralTheme('No theme here')).toBe('');
       expect(extractBehavioralTheme('Behavioral Theme:   Something   ')).toBe('Something');
       expect(extractBehavioralTheme('')).toBe('');
+    });
+  });
+}
+
+// TEST: Metadata rendering logic
+if (typeof describe === 'function') {
+  describe('metadata rendering', () => {
+    it('renders tags, category, role, and date if present', () => {
+      const meta = { tags: ['foo', 'bar'], category: 'cat', role: 'lead', date: '2024-06-01T00:00:00Z' };
+      expect(meta.tags.join(', ')).toBe('foo, bar');
+      expect(meta.category).toBe('cat');
+      expect(meta.role).toBe('lead');
+      expect(new Date(meta.date).toLocaleDateString()).toBe(new Date('2024-06-01T00:00:00Z').toLocaleDateString());
     });
   });
 } 
