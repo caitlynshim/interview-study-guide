@@ -105,55 +105,46 @@ export default function Home() {
 
   return (
     <div className="spring-bg">
-      <main className="spring-main">
-        <div className="spring-card">
-          <h1 className="spring-title">Interview Question Helper</h1>
-
-          {/* Step 1: Choose or Enter a Question */}
-          <div className="spring-step">
-            <div className="spring-step-title">1. Choose or Enter a Question</div>
-            <div className="spring-row">
-              <div className="spring-col">
-                <label htmlFor="category" className="spring-label">Category</label>
-                <select
-                  id="category"
-                  className="spring-select"
-                  value={selectedCategory}
-                  onChange={e => setSelectedCategory(e.target.value)}
-                >
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-                <button
-                  className="spring-btn"
-                  onClick={fetchRandomQuestion}
-                  disabled={loading}
-                  style={{ marginTop: 8 }}
-                >
-                  {loading ? 'Loading...' : 'Get Random Question'}
-                </button>
-              </div>
-              <div className="spring-or">or</div>
-              <div className="spring-col">
-                <label htmlFor="userq" className="spring-label">Your Question</label>
-                <input
-                  id="userq"
-                  type="text"
-                  value={userInput}
-                  onChange={handleUserInput}
-                  placeholder="Type your question..."
-                  className="spring-input"
-                />
-              </div>
-            </div>
-            {error && <div className="spring-error">{error}</div>}
+      <main className="spring-main-responsive">
+        <div className="spring-card-responsive">
+          {/* Category bubbles */}
+          <div className="spring-categories-row">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                className={`spring-category-bubble${selectedCategory === cat ? ' selected' : ''}`}
+                onClick={() => setSelectedCategory(cat)}
+                type="button"
+              >
+                {cat}
+              </button>
+            ))}
           </div>
 
-          {/* Step 2: View the Question */}
-          <div className="spring-step">
-            <div className="spring-step-title">2. Your Question</div>
-            <div className="spring-question-box">
+          {/* Random question button and user input */}
+          <div className="spring-row spring-row-question-input">
+            <button
+              className="spring-btn"
+              onClick={fetchRandomQuestion}
+              disabled={loading}
+              style={{ minWidth: 180 }}
+            >
+              {loading ? 'Loading...' : 'Get Random Question'}
+            </button>
+            <input
+              id="userq"
+              type="text"
+              placeholder="Enter your own question..."
+              className="spring-input"
+              value={userInput}
+              onChange={handleUserInput}
+              style={{ flex: 1 }}
+            />
+          </div>
+
+          {/* Your Question and Generate Answer */}
+          <div className="spring-row spring-row-question-display">
+            <div className="spring-question-box" style={{ flex: 1 }}>
               {question ? (
                 <>
                   <span className="spring-question">{question}</span>
@@ -168,27 +159,27 @@ export default function Home() {
                 <span className="spring-placeholder">No question selected yet.</span>
               )}
             </div>
-          </div>
-
-          {/* Step 3: Generate and View the Answer */}
-          <div className="spring-step">
-            <div className="spring-step-title">3. Generate an Answer</div>
             <button
               className="spring-btn"
               onClick={handleGenerateAnswer}
               disabled={answerLoading || !question}
+              style={{ marginLeft: 16, minWidth: 180 }}
             >
               {answerLoading ? 'Generating...' : 'Generate Answer'}
             </button>
-            {answerError && <div className="spring-error">{answerError}</div>}
-            {answer && (
-              <div className="spring-answer-box">
-                <div className="spring-answer">
-                  <ReactMarkdown>{answer}</ReactMarkdown>
-                </div>
-              </div>
-            )}
           </div>
+
+          {/* Error */}
+          {answerError && <div className="spring-error">{answerError}</div>}
+
+          {/* Answer */}
+          {answer && (
+            <div className="spring-answer-box">
+              <div className="spring-answer">
+                <ReactMarkdown>{answer}</ReactMarkdown>
+              </div>
+            </div>
+          )}
         </div>
       </main>
       <style jsx>{`
@@ -200,68 +191,77 @@ export default function Home() {
           align-items: center;
           justify-content: flex-start;
         }
-        .spring-main {
+        .spring-main-responsive {
           width: 100vw;
           min-height: 100vh;
           display: flex;
           align-items: center;
           justify-content: center;
+          background: linear-gradient(135deg, #f7f8f3 60%, #f3ede4 100%);
         }
-        .spring-card {
-          background: ${SPRING.card};
+        .spring-card-responsive {
+          background: #fff;
           border-radius: 18px;
-          box-shadow: 0 4px 24px 0 rgba(138,154,91,0.10), 0 1.5px 6px 0 rgba(138,154,91,0.08);
+          box-shadow: 0 4px 24px 0 rgba(138,154,91,.1),0 1.5px 6px 0 rgba(138,154,91,.08);
           padding: 2.5rem 2.2rem 2.2rem 2.2rem;
-          max-width: 520px;
+          max-width: 1200px;
           width: 100%;
           margin: 2.5rem 0;
-          display: flex;
-          flex-direction: column;
-          gap: 2.2rem;
         }
-        .spring-title {
-          font-size: 2.1rem;
-          color: ${SPRING.accent};
-          font-weight: 700;
-          text-align: center;
-          margin-bottom: 0.5rem;
-          letter-spacing: 0.01em;
-        }
-        .spring-step {
+        .spring-categories-row {
           display: flex;
-          flex-direction: column;
+          flex-wrap: wrap;
           gap: 0.7rem;
+          margin-bottom: 1.2rem;
+          justify-content: center;
         }
-        .spring-step-title {
-          font-size: 1.08rem;
-          color: ${SPRING.accent};
-          font-weight: 600;
-          margin-bottom: 0.2rem;
-        }
-        .spring-row {
-          display: flex;
-          flex-direction: row;
-          align-items: flex-end;
-          gap: 1.2rem;
-        }
-        .spring-col {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          gap: 0.3rem;
-        }
-        .spring-label {
-          font-size: 0.98rem;
-          color: ${SPRING.gray};
-          margin-bottom: 0.1rem;
-        }
-        .spring-select, .spring-input {
-          padding: 0.5rem 0.7rem;
-          border-radius: 7px;
-          border: 1px solid ${SPRING.border};
-          font-size: 1rem;
+        .spring-category-bubble {
           background: ${SPRING.accent3};
           color: ${SPRING.text};
+          border: 1.5px solid ${SPRING.accent2};
+          border-radius: 20px;
+          padding: 0.45rem 1.2rem;
+          font-size: 1.01rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: background 0.18s, color 0.18s, border 0.18s;
+        }
+        .spring-category-bubble.selected {
+          background: ${SPRING.accent};
+          color: #fff;
+          border: 1.5px solid ${SPRING.accent};
+        }
+        .spring-row-question-input {
+          display: flex;
+          flex-direction: row;
+          gap: 1.2rem;
+          margin-bottom: 1.2rem;
+        }
+        .spring-row-question-display {
+          display: flex;
+          flex-direction: row;
+          align-items: flex-start;
+          gap: 1.2rem;
+          margin-bottom: 1.2rem;
+        }
+        .spring-question-box {
+          background: ${SPRING.accent3};
+          border-radius: 10px;
+          padding: 1.1rem 1rem;
+          min-height: 3.2rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+        .spring-answer-box {
+          background: ${SPRING.accent3};
+          border-radius: 10px;
+          padding: 1.1rem 1rem;
+          min-height: 3.2rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+          margin-top: 1.2rem;
         }
         .spring-btn {
           background: ${SPRING.accent};
@@ -282,27 +282,6 @@ export default function Home() {
           background: ${SPRING.accent3};
           color: ${SPRING.gray};
           cursor: not-allowed;
-        }
-        .spring-or {
-          color: ${SPRING.gray};
-          font-size: 1.1rem;
-          font-weight: 500;
-          align-self: flex-end;
-          margin-bottom: 0.5rem;
-        }
-        .spring-question-box, .spring-answer-box {
-          background: ${SPRING.accent3};
-          border-radius: 10px;
-          padding: 1.1rem 1rem;
-          min-height: 3.2rem;
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-        }
-        .spring-question {
-          font-size: 1.13rem;
-          color: ${SPRING.text};
-          font-weight: 500;
         }
         .spring-placeholder {
           color: ${SPRING.gray};
@@ -333,18 +312,14 @@ export default function Home() {
           margin-top: 0.5rem;
           font-size: 0.99rem;
         }
-        @media (max-width: 600px) {
-          .spring-card {
-            padding: 1.1rem 0.3rem;
-            max-width: 99vw;
-          }
-          .spring-row {
+        @media (max-width: 700px) {
+          .spring-row-question-input,
+          .spring-row-question-display {
             flex-direction: column;
             gap: 0.7rem;
           }
-          .spring-or {
-            align-self: center;
-            margin-bottom: 0;
+          .spring-btn {
+            min-width: 100%;
           }
         }
       `}</style>
