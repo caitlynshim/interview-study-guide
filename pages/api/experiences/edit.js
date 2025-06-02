@@ -17,9 +17,20 @@ export default async function handler(req, res) {
     if (!exp) {
       return res.status(404).json({ message: 'Experience not found' });
     }
+    // Generate category if not provided
+    let finalCategory = metadata?.category;
+    if (!finalCategory) {
+      try {
+        const { generateCategory } = await import('../../../lib/openai');
+        finalCategory = await generateCategory({ title, content });
+      } catch (catErr) {
+        console.error('[API /api/experiences/edit] Category generation error:', catErr, catErr.stack);
+        finalCategory = '';
+      }
+    }
     exp.title = title;
     exp.content = content;
-    exp.metadata = metadata || {};
+    exp.metadata = { ...metadata, category: finalCategory };
     // Re-embed
     try {
       exp.embedding = await generateEmbedding(`${title}\n${content}`);

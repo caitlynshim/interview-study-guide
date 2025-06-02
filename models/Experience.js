@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const pointSchema = new mongoose.Schema({
   type: {
@@ -30,4 +30,4 @@ const ExperienceSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now },
 });
 
-export default mongoose.models.Experience || mongoose.model('Experience', ExperienceSchema); 
+module.exports = mongoose.models.Experience || mongoose.model('Experience', ExperienceSchema); 

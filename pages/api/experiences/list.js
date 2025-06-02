@@ -19,6 +19,9 @@ export default async function handler(req, res) {
       title: exp.title,
       content: exp.content,
       category: exp.metadata?.category || '',
+      metadata: exp.metadata || {},
+      createdAt: exp.createdAt,
+      updatedAt: exp.updatedAt,
     }));
     res.status(200).json({ experiences: mapped });
   } catch (err) {

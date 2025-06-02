@@ -19,6 +19,17 @@ export default async function handler(req, res) {
     return res.status(400).json({ message: 'Validation failed', errors });
   }
   try {
+    // Generate category if not provided
+    let finalCategory = category;
+    if (!finalCategory) {
+      try {
+        const { generateCategory } = await import('../../../lib/openai');
+        finalCategory = await generateCategory({ title, content });
+      } catch (catErr) {
+        console.error('[API /api/experiences/add] Category generation error:', catErr, catErr.stack);
+        finalCategory = '';
+      }
+    }
     // Prepare experience doc
     const exp = new Experience({
       title,
@@ -26,7 +37,7 @@ export default async function handler(req, res) {
       embedding: [0], // Placeholder, will be updated after embedding
       metadata: {
         tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [],
-        category,
+        category: finalCategory,
         role,
         date: date ? new Date(date) : undefined,
       },

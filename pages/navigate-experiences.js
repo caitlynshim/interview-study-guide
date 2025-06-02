@@ -16,14 +16,6 @@ const SPRING = {
   blush: '#f7e6e6',
 };
 
-function extractBehavioralTheme(content) {
-  // Expects first line like: 'Behavioral Theme: XYZ'
-  if (!content) return '';
-  const firstLine = content.split('\n')[0];
-  const match = firstLine.match(/^Behavioral Theme:\s*(.+)$/i);
-  return match ? match[1].trim() : '';
-}
-
 export default function NavigateExperiences() {
   const [experiences, setExperiences] = useState([]);
   const [categories, setCategories] = useState(['All']);
@@ -44,14 +36,8 @@ export default function NavigateExperiences() {
         const response = await fetch('/api/experiences/list');
         const data = await response.json();
         if (!response.ok) throw new Error(data.message || 'Failed to fetch experiences');
-        // Attach behavioralTheme to each experience
-        const withThemes = data.experiences.map(e => ({
-          ...e,
-          behavioralTheme: extractBehavioralTheme(e.content),
-        }));
-        setExperiences(withThemes);
-        // Extract unique behavioral themes
-        const cats = Array.from(new Set(withThemes.map(e => e.behavioralTheme).filter(Boolean)));
+        const cats = Array.from(new Set(data.experiences.map(e => e.category).filter(Boolean)));
+        setExperiences(data.experiences);
         setCategories(['All', ...cats]);
       } catch (err) {
         setError(`Error fetching experiences: ${err.message}`);
@@ -67,7 +53,7 @@ export default function NavigateExperiences() {
   // Filter by behavioral theme
   const filteredExperiences = selectedCategory === 'All'
     ? experiences
-    : experiences.filter(e => e.behavioralTheme === selectedCategory);
+    : experiences.filter(e => e.category === selectedCategory);
 
   return (
     <div className="spring-bg">
@@ -114,7 +100,7 @@ export default function NavigateExperiences() {
                   style={{ cursor: 'pointer', outline: expandedId === exp._id ? `2px solid ${SPRING.accent}` : 'none' }}
                 >
                   <div className="spring-experience-title">{exp.title}</div>
-                  <div className="spring-experience-category">{exp.behavioralTheme || 'Uncategorized'}</div>
+                  <div className="spring-experience-category">{exp.category || 'Uncategorized'}</div>
                   {expandedId === exp._id && editingId !== exp._id ? (
                     <div className="spring-experience-details">
                       <div className="spring-experience-content" style={{ whiteSpace: 'pre-line', marginTop: '0.7rem' }}>{exp.content}</div>
@@ -419,19 +405,6 @@ export default function NavigateExperiences() {
       `}</style>
     </div>
   );
-}
-
-// TEST: Extraction logic
-if (typeof describe === 'function') {
-  describe('extractBehavioralTheme', () => {
-    it('extracts the theme from the first line', () => {
-      expect(extractBehavioralTheme('Behavioral Theme: Foo\nSituation: ...')).toBe('Foo');
-      expect(extractBehavioralTheme('Behavioral Theme: Bar')).toBe('Bar');
-      expect(extractBehavioralTheme('No theme here')).toBe('');
-      expect(extractBehavioralTheme('Behavioral Theme:   Something   ')).toBe('Something');
-      expect(extractBehavioralTheme('')).toBe('');
-    });
-  });
 }
 
 // TEST: Metadata rendering logic
