@@ -28,6 +28,13 @@ export default function Home() {
   const [answer, setAnswer] = useState('');
   const [answerLoading, setAnswerLoading] = useState(false);
   const [answerError, setAnswerError] = useState('');
+  const [showWriteIn, setShowWriteIn] = useState(false);
+  const [writeInAnswer, setWriteInAnswer] = useState('');
+  const [evaluation, setEvaluation] = useState('');
+  const [evalLoading, setEvalLoading] = useState(false);
+  const [evalError, setEvalError] = useState('');
+  const [suggestedUpdate, setSuggestedUpdate] = useState(null);
+  const [matchedExperience, setMatchedExperience] = useState(null);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -168,31 +175,101 @@ export default function Home() {
                 <span className="spring-placeholder">No question selected yet.</span>
               )}
             </div>
-            <button
-              className="spring-btn"
-              onClick={handleGenerateAnswer}
-              disabled={answerLoading || !question}
-              style={{ marginLeft: 16, minWidth: 180 }}
-            >
-              {answerLoading ? 'Generating...' : 'Generate Answer'}
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem', marginTop: '1rem' }}>
+              <button
+                className="spring-generate-btn"
+                onClick={handleGenerateAnswer}
+                disabled={loading || !question}
+                style={{ minWidth: 160 }}
+              >
+                Generate Answer
+              </button>
+              <button
+                className="spring-writein-btn"
+                onClick={() => setShowWriteIn(true)}
+                style={{ minWidth: 160, background: '#e6e9d8', color: '#4a5a23', border: '1px solid #bfc7a1', fontWeight: 500 }}
+                disabled={showWriteIn}
+              >
+                Write-in answer
+              </button>
+            </div>
           </div>
 
-          {/* Error */}
-          {answerError && <div className="spring-error">{answerError}</div>}
-
-          {/* Answer */}
-          {answer && (
+          {/* Write-in answer area */}
+          {showWriteIn && (
             <div className="spring-answer-box">
-              <div className="spring-answer">
-                <ReactMarkdown
-                  components={{
-                    a: ({ node, ...props }) => (
-                      <a {...props} target={props.href && props.href.startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer" style={{ color: '#7bbfdc', textDecoration: 'underline' }} />
-                    ),
-                  }}
-                >{answer}</ReactMarkdown>
-              </div>
+              <textarea
+                className="spring-input"
+                style={{ width: '100%', minHeight: 120, marginBottom: 12 }}
+                placeholder="Paste or write your answer here..."
+                value={writeInAnswer}
+                onChange={e => setWriteInAnswer(e.target.value)}
+                disabled={evalLoading}
+              />
+              <button
+                className="spring-btn"
+                style={{ minWidth: 180 }}
+                onClick={async () => {
+                  setEvalError(''); setEvaluation(''); setEvalLoading(true); setSuggestedUpdate(null); setMatchedExperience(null);
+                  try {
+                    const resp = await fetch('/api/experiences/evaluate', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ question, answer: writeInAnswer }),
+                    });
+                    const data = await resp.json();
+                    if (!resp.ok) throw new Error(data.message || 'Failed to evaluate answer');
+                    setEvaluation(data.evaluation);
+                    setSuggestedUpdate(data.suggestedUpdate || null);
+                    setMatchedExperience(data.matchedExperience || null);
+                  } catch (err) {
+                    setEvalError(err.message);
+                  } finally {
+                    setEvalLoading(false);
+                  }
+                }}
+                disabled={evalLoading || !writeInAnswer.trim()}
+              >
+                {evalLoading ? 'Evaluating...' : 'Submit for Evaluation'}
+              </button>
+              {evalError && <div className="spring-error">{evalError}</div>}
+              {evaluation && (
+                <div className="spring-answer" style={{ marginTop: 16 }}>
+                  <ReactMarkdown>{evaluation}</ReactMarkdown>
+                </div>
+              )}
+              {matchedExperience && suggestedUpdate && (
+                <div className="spring-answer" style={{ marginTop: 16, background: SPRING.accent3, padding: 16, borderRadius: 8 }}>
+                  <b>This answer matches an existing experience:</b>
+                  <div style={{ margin: '8px 0' }}><b>Title:</b> {matchedExperience.title}</div>
+                  <div style={{ margin: '8px 0' }}><b>Current Content:</b> <pre style={{ whiteSpace: 'pre-wrap' }}>{matchedExperience.content}</pre></div>
+                  <div style={{ margin: '8px 0' }}><b>Suggested Update:</b> <pre style={{ whiteSpace: 'pre-wrap' }}>{suggestedUpdate.content}</pre></div>
+                  <button
+                    className="spring-btn"
+                    style={{ background: SPRING.accent, color: '#fff', minWidth: 180, marginRight: 12 }}
+                    onClick={async () => {
+                      try {
+                        const resp = await fetch(`/api/experiences/edit?id=${matchedExperience._id}`, {
+                          method: 'PUT',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ title: matchedExperience.title, content: suggestedUpdate.content, metadata: matchedExperience.metadata }),
+                        });
+                        const data = await resp.json();
+                        if (!resp.ok) throw new Error(data.message || 'Failed to update experience');
+                        alert('Experience updated!');
+                        setMatchedExperience(null); setSuggestedUpdate(null);
+                      } catch (err) {
+                        alert('Update failed: ' + err.message);
+                      }
+                    }}
+                  >Approve update</button>
+                  <button
+                    className="spring-btn"
+                    style={{ background: SPRING.gray, color: '#fff', minWidth: 120 }}
+                    onClick={() => { setMatchedExperience(null); setSuggestedUpdate(null); }}
+                  >Reject</button>
+                </div>
+              )}
             </div>
           )}
         </div>

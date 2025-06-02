@@ -13,10 +13,6 @@ export default async function handler(req, res) {
   }
   try {
     await dbConnect();
-    const exp = await Experience.findById(id);
-    if (!exp) {
-      return res.status(404).json({ message: 'Experience not found' });
-    }
     // Generate category if not provided
     let finalCategory = metadata?.category;
     if (!finalCategory) {
@@ -28,17 +24,27 @@ export default async function handler(req, res) {
         finalCategory = '';
       }
     }
-    exp.title = title;
-    exp.content = content;
-    exp.metadata = { ...metadata, category: finalCategory };
     // Re-embed
+    let embedding;
     try {
-      exp.embedding = await generateEmbedding(`${title}\n${content}`);
+      embedding = await generateEmbedding(`${title}\n${content}`);
     } catch (embedErr) {
       return res.status(500).json({ message: 'Failed to re-embed experience', error: embedErr.message, stack: embedErr.stack });
     }
-    await exp.save();
-    return res.status(200).json({ message: 'Experience updated', experience: exp });
+    const updated = await Experience.findByIdAndUpdate(
+      id,
+      {
+        title,
+        content,
+        metadata: { ...metadata, category: finalCategory },
+        embedding,
+      },
+      { new: true }
+    );
+    if (!updated) {
+      return res.status(404).json({ message: 'Experience not found' });
+    }
+    return res.status(200).json({ message: 'Experience updated', experience: updated });
   } catch (err) {
     console.error('[API /api/experiences/edit] Error:', err, err.stack);
     return res.status(500).json({ message: 'Failed to update experience', error: err.message, stack: err.stack });
