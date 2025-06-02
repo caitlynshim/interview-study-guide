@@ -1,0 +1,84 @@
+Project Architecture Overview
+==============================
+
+1. Tech Stack
+-------------
+• **Framework**: Next.js (React 18) – CSR + API Routes on the same code-base.
+• **Database**: MongoDB Atlas (managed cloud MongoDB).
+• **ORM / ODM**: Mongoose for schema modelling & validation.
+• **Runtime**: Node.js 18 (used both for Next.js and standalone ingestion scripts).
+• **Styling**: CSS-in-JS via `style jsx` blocks.
+
+2. High-level Flow
+------------------
+```
+┌───────────────┐  HTTP (JSON)   ┌──────────────────────┐
+│   Next.js UI  │  ───────────▶ │  Next.js API Routes  │
+└───────────────┘               └─────────┬────────────┘
+                                           │ Mongoose
+                                           ▼
+                                   ┌──────────────────┐
+                                   │ MongoDB (Atlas)  │
+                                   └──────────────────┘
+```
+
+3. Front-end (pages/)
+---------------------
+• `pages/index.js` – single-page React component.
+  – Fetches available *categories* from `/api/questions/categories` on mount.
+  – On button click, fetches a *random* question via `/api/questions/random?category=<optional>`.
+  – Displays question text, category badge, difficulty badge.
+
+4. API Layer (pages/api/questions/)
+-----------------------------------
+• `random.js`  (GET only)
+  – Connects to DB via `lib/mongodb.js`.
+  – Accepts optional `category` query param.
+  – Counts matching docs then returns one random doc using `skip()`.
+
+• `categories.js`  (GET only)
+  – Returns the distinct set of `category` values from the collection.
+
+Both handlers share the same error & method-guard pattern and always close over the pooled connection from `dbConnect()`.
+
+5. Data Layer
+-------------
+• `models/Question.js` – Mongoose schema with fields:
+    • `question` (String, required)
+    • `category` (String, required)
+    • `difficulty` (enum: easy|medium|hard, default medium)
+    • `createdAt` (Date, default now)
+
+• `lib/mongodb.js` – Reusable singleton that pools the connection (cached across Lambda invocations / hot reloads).
+
+6. Ingestion & Maintenance Scripts (scripts/)
+---------------------------------------------
+• `import-questions.js`
+  – Parses the master **questions.rtf** file ➜ converts to plain-text via macOS `textutil`.
+  – Splits / cleans lines, heuristically validates each candidate as a true interview question.
+  – Derives *category* & *difficulty* heuristics, de-duplicates, bulk-inserts into MongoDB.
+  – Provides CLI output with distribution stats.
+
+• `sample-questions.js` – Minimal seed file for quick local demos.
+
+7. Configuration
+----------------
+• **Environment variables** stored in `.env.local` (not committed):
+  – `MONGODB_URI` – standard Mongo connection string.
+
+8. Local Development
+--------------------
+1. `npm install`
+2. Create `.env.local` with `MONGODB_URI`.
+3. Run `node scripts/import-questions.js` to seed DB.
+4. `npm run dev` to start Next.js dev server (runs in the background if required).
+
+9. Testing
+----------
+At the moment there are no automated tests checked in. The project guidelines stipulate that new code must be accompanied by tests. Future improvements include:
+• API route unit tests (e.g., jest + supertest).
+• Front-end component tests (React Testing Library).
+
+10. Deployment Note
+-------------------
+Because the database connection is pooled and reused, the app is ready for serverless deployment (e.g., Vercel). Ensure Atlas IP allow-list & auth credentials are configured. 
