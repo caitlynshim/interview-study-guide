@@ -105,6 +105,15 @@ export default function Home() {
 
   return (
     <div className="spring-bg">
+      {/* Navigation Bar */}
+      <nav className="spring-navbar">
+        <div className="spring-navbar-title">Mock Interview Questions</div>
+        <div className="spring-navbar-links">
+          <a href="/" className="spring-navbar-link active">Answer a question</a>
+          <a href="/add-experience" className="spring-navbar-link">Add an experience</a>
+          <a href="/navigate-experiences" className="spring-navbar-link">Navigate experiences</a>
+        </div>
+      </nav>
       <main className="spring-main-responsive">
         <div className="spring-card-responsive">
           {/* Category bubbles */}
@@ -190,6 +199,42 @@ export default function Home() {
           flex-direction: column;
           align-items: center;
           justify-content: flex-start;
+        }
+        .spring-navbar {
+          width: 100vw;
+          background: #fff;
+          border-bottom: 1.5px solid ${SPRING.accent3};
+          box-shadow: 0 2px 8px 0 rgba(138,154,91,0.04);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0.7rem 2.5rem 0.7rem 2.5rem;
+          position: sticky;
+          top: 0;
+          z-index: 100;
+        }
+        .spring-navbar-title {
+          font-size: 1.45rem;
+          font-weight: 700;
+          color: ${SPRING.accent};
+          letter-spacing: 0.01em;
+        }
+        .spring-navbar-links {
+          display: flex;
+          gap: 1.5rem;
+        }
+        .spring-navbar-link {
+          color: ${SPRING.text};
+          text-decoration: none;
+          font-size: 1.08rem;
+          font-weight: 500;
+          padding: 0.3rem 0.9rem;
+          border-radius: 7px;
+          transition: background 0.16s, color 0.16s;
+        }
+        .spring-navbar-link.active, .spring-navbar-link:hover {
+          background: ${SPRING.accent3};
+          color: ${SPRING.accent};
         }
         .spring-main-responsive {
           width: 100vw;
@@ -320,6 +365,17 @@ export default function Home() {
           }
           .spring-btn {
             min-width: 100%;
+          }
+          .spring-navbar {
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 0.7rem 1rem;
+          }
+          .spring-navbar-title {
+            margin-bottom: 0.5rem;
+          }
+          .spring-navbar-links {
+            gap: 0.7rem;
           }
         }
       `}</style>

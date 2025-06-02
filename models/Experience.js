@@ -14,6 +14,7 @@ const pointSchema = new mongoose.Schema({
 }, { _id: false });
 
 const ExperienceSchema = new mongoose.Schema({
+  title: { type: String, required: true },
   content: { type: String, required: true },
   embedding: {
     type: [Number],
