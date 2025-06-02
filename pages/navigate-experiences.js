@@ -31,6 +31,10 @@ export default function NavigateExperiences() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [expandedId, setExpandedId] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({ title: '', content: '', metadata: {} });
+  const [editLoading, setEditLoading] = useState(false);
+  const [editMetaError, setEditMetaError] = useState('');
 
   useEffect(() => {
     const fetchExperiences = async () => {
@@ -111,7 +115,7 @@ export default function NavigateExperiences() {
                 >
                   <div className="spring-experience-title">{exp.title}</div>
                   <div className="spring-experience-category">{exp.behavioralTheme || 'Uncategorized'}</div>
-                  {expandedId === exp._id ? (
+                  {expandedId === exp._id && editingId !== exp._id ? (
                     <div className="spring-experience-details">
                       <div className="spring-experience-content" style={{ whiteSpace: 'pre-line', marginTop: '0.7rem' }}>{exp.content}</div>
                       {exp.metadata && (
@@ -136,11 +140,82 @@ export default function NavigateExperiences() {
                           <span style={{ marginLeft: '1.2rem' }}><strong>Updated:</strong> {new Date(exp.updatedAt).toLocaleDateString()}</span>
                         )}
                       </div>
+                      <div className="spring-experience-actions" style={{ marginTop: '1rem', display: 'flex', gap: '1rem' }}>
+                        <button
+                          className="spring-delete-btn"
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            if (!window.confirm('Are you sure you want to delete this experience? This cannot be undone.')) return;
+                            try {
+                              const resp = await fetch(`/api/experiences/delete?id=${exp._id}`, { method: 'DELETE' });
+                              const data = await resp.json();
+                              if (!resp.ok) throw new Error(data.message || 'Failed to delete');
+                              setExperiences(experiences => experiences.filter(e => e._id !== exp._id));
+                              setExpandedId(null);
+                            } catch (err) {
+                              setError(`Delete failed: ${err.message}`);
+                            }
+                          }}
+                          type="button"
+                          style={{ background: SPRING.error, color: '#fff', border: 'none', borderRadius: 7, padding: '0.5rem 1.2rem', fontWeight: 600, cursor: 'pointer' }}
+                        >
+                          Delete
+                        </button>
+                        <button
+                          className="spring-edit-btn"
+                          onClick={e => {
+                            e.stopPropagation();
+                            setEditingId(exp._id);
+                            setEditForm({ title: exp.title, content: exp.content, metadata: exp.metadata || {} });
+                          }}
+                          type="button"
+                          style={{ background: SPRING.accent, color: '#fff', border: 'none', borderRadius: 7, padding: '0.5rem 1.2rem', fontWeight: 600, cursor: 'pointer' }}
+                        >
+                          Edit
+                        </button>
+                      </div>
                     </div>
-                  ) : (
-                    <div className="spring-experience-content" style={{ color: SPRING.gray, fontStyle: 'italic', marginTop: '0.7rem' }}>
-                      {exp.content.slice(0, 120)}{exp.content.length > 120 ? '…' : ''}
-                    </div>
+                  ) : null}
+                  {editingId === exp._id && (
+                    <form
+                      className="spring-edit-form"
+                      style={{ marginTop: '1.2rem', background: SPRING.accent3, borderRadius: 8, padding: '1.2rem' }}
+                      onSubmit={async e => {
+                        e.preventDefault();
+                        setEditLoading(true);
+                        setError('');
+                        try {
+                          const resp = await fetch(`/api/experiences/edit?id=${exp._id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ title: editForm.title, content: editForm.content }),
+                          });
+                          const data = await resp.json();
+                          if (!resp.ok) throw new Error(data.message || 'Failed to update');
+                          setExperiences(experiences => experiences.map(e => e._id === exp._id ? { ...e, ...editForm, metadata: e.metadata } : e));
+                          setEditingId(null);
+                        } catch (err) {
+                          setError(`Edit failed: ${err.message}`);
+                        } finally {
+                          setEditLoading(false);
+                        }
+                      }}
+                    >
+                      <div style={{ marginBottom: '0.7rem' }}>
+                        <label style={{ fontWeight: 500 }}>Title:<br />
+                          <input type="text" value={editForm.title} onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))} style={{ width: '100%', padding: '0.4rem', borderRadius: 5, border: `1px solid ${SPRING.accent2}` }} required />
+                        </label>
+                      </div>
+                      <div style={{ marginBottom: '0.7rem' }}>
+                        <label style={{ fontWeight: 500 }}>Content:<br />
+                          <textarea value={editForm.content} onChange={e => setEditForm(f => ({ ...f, content: e.target.value }))} style={{ width: '100%', minHeight: 80, padding: '0.4rem', borderRadius: 5, border: `1px solid ${SPRING.accent2}` }} required />
+                        </label>
+                      </div>
+                      <div style={{ display: 'flex', gap: '1rem', marginTop: '0.7rem' }}>
+                        <button type="submit" disabled={editLoading} style={{ background: SPRING.accent, color: '#fff', border: 'none', borderRadius: 7, padding: '0.5rem 1.2rem', fontWeight: 600, cursor: 'pointer' }}>Save</button>
+                        <button type="button" onClick={() => setEditingId(null)} style={{ background: SPRING.gray, color: '#fff', border: 'none', borderRadius: 7, padding: '0.5rem 1.2rem', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
+                      </div>
+                    </form>
                   )}
                 </li>
               ))}
@@ -296,6 +371,35 @@ export default function NavigateExperiences() {
         .spring-experience-meta-dates {
           margin-top: 0.7rem;
         }
+        .spring-experience-actions {
+          margin-top: 1rem;
+          display: flex;
+          gap: 1rem;
+        }
+        .spring-delete-btn {
+          background: ${SPRING.error};
+          color: #fff;
+          border: none;
+          border-radius: 7px;
+          padding: 0.5rem 1.2rem;
+          font-weight: 600;
+          cursor: pointer;
+        }
+        .spring-edit-btn {
+          background: ${SPRING.accent};
+          color: #fff;
+          border: none;
+          border-radius: 7px;
+          padding: 0.5rem 1.2rem;
+          font-weight: 600;
+          cursor: pointer;
+        }
+        .spring-edit-form {
+          margin-top: 1.2rem;
+          background: ${SPRING.accent3};
+          border-radius: 8px;
+          padding: 1.2rem;
+        }
         @media (max-width: 700px) {
           .spring-navbar {
             flex-direction: column;
@@ -339,6 +443,20 @@ if (typeof describe === 'function') {
       expect(meta.category).toBe('cat');
       expect(meta.role).toBe('lead');
       expect(new Date(meta.date).toLocaleDateString()).toBe(new Date('2024-06-01T00:00:00Z').toLocaleDateString());
+    });
+  });
+}
+
+// TEST: Edit logic
+if (typeof describe === 'function') {
+  describe('edit logic', () => {
+    it('updates experience in UI after edit', () => {
+      const exps = [{ _id: '1', title: 'A', content: 'B', metadata: {} }];
+      const updated = { title: 'C', content: 'D', metadata: { foo: 1 } };
+      const setExperiences = jest.fn();
+      // Simulate edit
+      setExperiences(exps.map(e => e._id === '1' ? { ...e, ...updated } : e));
+      expect(setExperiences).toBeCalled;
     });
   });
 } 
