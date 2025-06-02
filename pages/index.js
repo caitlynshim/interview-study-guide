@@ -1,5 +1,21 @@
 import { useState, useEffect } from 'react';
 
+const SPRING = {
+  bg: '#f7f8f3', // light olive-tinted background
+  card: '#fff',
+  accent: '#8a9a5b', // olive green
+  accent2: '#b7c68b', // lighter olive/spring green
+  accent3: '#e7ecd9', // lightest olive/green-gray
+  text: '#2d3a2e',
+  gray: '#7a8b7b',
+  error: '#c0392b',
+  errorBg: '#fff0ee',
+  border: '#dbe5dd',
+  blue: '#7bbfdc', // spring blue
+  beige: '#f3ede4',
+  blush: '#f7e6e6', // soft blush for subtle highlights
+};
+
 export default function Home() {
   const [categories, setCategories] = useState(['All']);
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -87,267 +103,245 @@ export default function Home() {
   };
 
   return (
-    <div className="container">
-      <main className="main">
-        <h1 className="title">Interview Questions</h1>
+    <div className="spring-bg">
+      <main className="spring-main">
+        <div className="spring-card">
+          <h1 className="spring-title">Interview Question Helper</h1>
 
-        {/* Question Display Card */}
-        <div className="qa-card">
-          <div className="qa-card-content">
-            <div className="question-block">
-              <h3 className="qa-label">Question</h3>
+          {/* Step 1: Choose or Enter a Question */}
+          <div className="spring-step">
+            <div className="spring-step-title">1. Choose or Enter a Question</div>
+            <div className="spring-row">
+              <div className="spring-col">
+                <label htmlFor="category" className="spring-label">Category</label>
+                <select
+                  id="category"
+                  className="spring-select"
+                  value={selectedCategory}
+                  onChange={e => setSelectedCategory(e.target.value)}
+                >
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+                <button
+                  className="spring-btn"
+                  onClick={fetchRandomQuestion}
+                  disabled={loading}
+                  style={{ marginTop: 8 }}
+                >
+                  {loading ? 'Loading...' : 'Get Random Question'}
+                </button>
+              </div>
+              <div className="spring-or">or</div>
+              <div className="spring-col">
+                <label htmlFor="userq" className="spring-label">Your Question</label>
+                <input
+                  id="userq"
+                  type="text"
+                  value={userInput}
+                  onChange={handleUserInput}
+                  placeholder="Type your question..."
+                  className="spring-input"
+                />
+              </div>
+            </div>
+            {error && <div className="spring-error">{error}</div>}
+          </div>
+
+          {/* Step 2: View the Question */}
+          <div className="spring-step">
+            <div className="spring-step-title">2. Your Question</div>
+            <div className="spring-question-box">
               {question ? (
                 <>
-                  <p className="question">{question}</p>
+                  <span className="spring-question">{question}</span>
                   {questionMeta && (
-                    <div className="meta">
-                      <span className="category">{questionMeta.category}</span>
-                      <span className="difficulty">{questionMeta.difficulty}</span>
-                    </div>
+                    <span className="spring-badges">
+                      <span className="spring-badge">{questionMeta.category}</span>
+                      <span className="spring-badge spring-badge-diff">{questionMeta.difficulty}</span>
+                    </span>
                   )}
                 </>
               ) : (
-                <p className="placeholder">No question selected yet.</p>
+                <span className="spring-placeholder">No question selected yet.</span>
               )}
             </div>
-            {error && <div className="error">{error}</div>}
           </div>
-          {/* Controls Row */}
-          <div className="controls-row">
-            <div className="random-controls">
-              <div className="categories">
-                {categories.map((category) => (
-                  <button
-                    key={category}
-                    className={`category-btn ${selectedCategory === category ? 'selected' : ''}`}
-                    onClick={() => setSelectedCategory(category)}
-                  >
-                    {category}
-                  </button>
-                ))}
+
+          {/* Step 3: Generate and View the Answer */}
+          <div className="spring-step">
+            <div className="spring-step-title">3. Generate an Answer</div>
+            <button
+              className="spring-btn"
+              onClick={handleGenerateAnswer}
+              disabled={answerLoading || !question}
+            >
+              {answerLoading ? 'Generating...' : 'Generate Answer'}
+            </button>
+            {answerError && <div className="spring-error">{answerError}</div>}
+            {answer && (
+              <div className="spring-answer-box">
+                <span className="spring-answer">{answer}</span>
               </div>
-              <button
-                className="button"
-                onClick={fetchRandomQuestion}
-                disabled={loading}
-              >
-                {loading ? 'Loading...' : 'Random Question'}
-              </button>
-            </div>
-            <div className="or-divider">or</div>
-            <div className="user-input-controls">
-              <input
-                type="text"
-                value={userInput}
-                onChange={handleUserInput}
-                placeholder="Type your own question..."
-                className="ask-input"
-              />
-            </div>
+            )}
           </div>
-          {/* Generate Answer Section (only if question is present) */}
-          {question && (
-            <div className="answer-block">
-              <button
-                className="button answer-btn"
-                onClick={handleGenerateAnswer}
-                disabled={answerLoading}
-              >
-                {answerLoading ? 'Generating...' : 'Generate Answer'}
-              </button>
-              {answerError && <div className="error">{answerError}</div>}
-              {answer && (
-                <div className="answer-container">
-                  <h3 className="qa-label">Answer</h3>
-                  <p className="answer">{answer}</p>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </main>
       <style jsx>{`
-        .container {
+        .spring-bg {
           min-height: 100vh;
-          padding: 0 0.5rem;
+          background: linear-gradient(135deg, ${SPRING.bg} 60%, ${SPRING.beige} 100%);
           display: flex;
           flex-direction: column;
-          justify-content: center;
           align-items: center;
-          background-color: #f5f5f5;
-        }
-        .main {
-          padding: 2rem 0;
-          flex: 1;
-          display: flex;
-          flex-direction: column;
           justify-content: flex-start;
+        }
+        .spring-main {
+          width: 100vw;
+          min-height: 100vh;
+          display: flex;
           align-items: center;
-          max-width: 700px;
-          width: 100%;
+          justify-content: center;
         }
-        .title {
-          margin: 0 0 1.5rem 0;
-          line-height: 1.15;
-          font-size: 2.2rem;
-          text-align: center;
-          color: #2c3e50;
-        }
-        .qa-card {
-          background: #fff;
-          border-radius: 14px;
-          box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-          padding: 1.5rem 2rem;
+        .spring-card {
+          background: ${SPRING.card};
+          border-radius: 18px;
+          box-shadow: 0 4px 24px 0 rgba(138,154,91,0.10), 0 1.5px 6px 0 rgba(138,154,91,0.08);
+          padding: 2.5rem 2.2rem 2.2rem 2.2rem;
+          max-width: 520px;
           width: 100%;
-          max-width: 600px;
+          margin: 2.5rem 0;
           display: flex;
           flex-direction: column;
-          align-items: stretch;
+          gap: 2.2rem;
         }
-        .qa-card-content {
-          margin-bottom: 1.2rem;
-        }
-        .question-block {
+        .spring-title {
+          font-size: 2.1rem;
+          color: ${SPRING.accent};
+          font-weight: 700;
+          text-align: center;
           margin-bottom: 0.5rem;
+          letter-spacing: 0.01em;
         }
-        .qa-label {
-          font-size: 1.1rem;
-          color: #34495e;
+        .spring-step {
+          display: flex;
+          flex-direction: column;
+          gap: 0.7rem;
+        }
+        .spring-step-title {
+          font-size: 1.08rem;
+          color: ${SPRING.accent};
+          font-weight: 600;
           margin-bottom: 0.2rem;
         }
-        .question {
-          font-size: 1.15rem;
-          color: #2c3e50;
-          margin: 0 0 0.2rem 0;
-          line-height: 1.5;
-        }
-        .placeholder {
-          color: #aaa;
-          font-style: italic;
-        }
-        .meta {
-          display: flex;
-          gap: 0.7rem;
-          font-size: 0.95rem;
-          color: #7f8c8d;
-        }
-        .category, .difficulty {
-          padding: 0.2rem 0.7rem;
-          border-radius: 12px;
-          background: #f0f0f0;
-        }
-        .controls-row {
+        .spring-row {
           display: flex;
           flex-direction: row;
           align-items: flex-end;
-          justify-content: space-between;
-          gap: 1.5rem;
+          gap: 1.2rem;
+        }
+        .spring-col {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 0.3rem;
+        }
+        .spring-label {
+          font-size: 0.98rem;
+          color: ${SPRING.gray};
+          margin-bottom: 0.1rem;
+        }
+        .spring-select, .spring-input {
+          padding: 0.5rem 0.7rem;
+          border-radius: 7px;
+          border: 1px solid ${SPRING.border};
+          font-size: 1rem;
+          background: ${SPRING.accent3};
+          color: ${SPRING.text};
+        }
+        .spring-btn {
+          background: ${SPRING.accent};
+          color: #fff;
+          border: none;
+          border-radius: 7px;
+          padding: 0.6rem 1.3rem;
+          font-size: 1.05rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background 0.18s;
+        }
+        .spring-btn:hover {
+          background: ${SPRING.accent2};
+          color: ${SPRING.text};
+        }
+        .spring-btn:disabled {
+          background: ${SPRING.accent3};
+          color: ${SPRING.gray};
+          cursor: not-allowed;
+        }
+        .spring-or {
+          color: ${SPRING.gray};
+          font-size: 1.1rem;
+          font-weight: 500;
+          align-self: flex-end;
           margin-bottom: 0.5rem;
         }
-        .random-controls, .user-input-controls {
-          flex: 1;
+        .spring-question-box, .spring-answer-box {
+          background: ${SPRING.accent3};
+          border-radius: 10px;
+          padding: 1.1rem 1rem;
+          min-height: 3.2rem;
           display: flex;
           flex-direction: column;
           gap: 0.5rem;
         }
-        .categories {
+        .spring-question {
+          font-size: 1.13rem;
+          color: ${SPRING.text};
+          font-weight: 500;
+        }
+        .spring-placeholder {
+          color: ${SPRING.gray};
+          font-style: italic;
+        }
+        .spring-badges {
           display: flex;
-          flex-wrap: wrap;
-          gap: 0.4rem;
-          margin-bottom: 0.2rem;
+          gap: 0.5rem;
+          margin-top: 0.2rem;
         }
-        .category-btn {
-          padding: 0.35rem 0.9rem;
-          border: 1px solid #ddd;
-          border-radius: 20px;
-          background: white;
-          cursor: pointer;
-          transition: all 0.2s;
-          font-size: 0.92rem;
+        .spring-badge {
+          background: ${SPRING.blue};
+          color: #fff;
+          border-radius: 8px;
+          padding: 0.18rem 0.7rem;
+          font-size: 0.93rem;
+          font-weight: 500;
         }
-        .category-btn:hover {
-          background: #f0f0f0;
+        .spring-badge-diff {
+          background: ${SPRING.accent};
         }
-        .category-btn.selected {
-          background: #2c3e50;
-          color: white;
-          border-color: #2c3e50;
+        .spring-error {
+          color: ${SPRING.error};
+          background: ${SPRING.errorBg};
+          border: 1px solid ${SPRING.error};
+          border-radius: 6px;
+          padding: 0.5rem 1rem;
+          margin-top: 0.5rem;
+          font-size: 0.99rem;
         }
-        .button {
-          padding: 0.7rem 1.5rem;
-          font-size: 1rem;
-          background-color: #2c3e50;
-          color: white;
-          border: none;
-          border-radius: 5px;
-          cursor: pointer;
-          transition: background-color 0.2s;
-        }
-        .button:hover {
-          background-color: #34495e;
-        }
-        .button:disabled {
-          background-color: #95a5a6;
-          cursor: not-allowed;
-        }
-        .ask-input {
-          padding: 0.5rem;
-          border: 1px solid #ddd;
-          border-radius: 5px;
-          width: 100%;
-          font-size: 1rem;
-        }
-        .or-divider {
-          align-self: center;
-          color: #aaa;
-          font-size: 1.1rem;
-          padding: 0 0.5rem;
-        }
-        .answer-block {
-          margin-top: 1.2rem;
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-        }
-        .answer-btn {
-          margin-bottom: 0.7rem;
-        }
-        .answer-container {
-          background: #f9f9f9;
-          padding: 1rem;
-          border-radius: 10px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-          width: 100%;
-          margin: 0;
-        }
-        .answer {
-          font-size: 1.08rem;
-          color: #2c3e50;
-          margin: 0;
-          line-height: 1.5;
-        }
-        .error {
-          color: #c0392b;
-          background: #ffeaea;
-          border: 1px solid #e74c3c;
-          border-radius: 5px;
-          padding: 0.4rem 0.8rem;
-          margin: 0.5rem 0 0 0;
-          font-size: 0.98rem;
-        }
-        @media (max-width: 700px) {
-          .main {
-            padding: 1rem 0;
+        @media (max-width: 600px) {
+          .spring-card {
+            padding: 1.1rem 0.3rem;
+            max-width: 99vw;
           }
-          .qa-card {
-            padding: 1rem 0.5rem;
-          }
-          .controls-row {
+          .spring-row {
             flex-direction: column;
             gap: 0.7rem;
           }
-          .or-divider {
-            padding: 0.2rem 0;
+          .spring-or {
+            align-self: center;
+            margin-bottom: 0;
           }
         }
       `}</style>
