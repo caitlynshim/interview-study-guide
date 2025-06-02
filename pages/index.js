@@ -185,7 +185,13 @@ export default function Home() {
           {answer && (
             <div className="spring-answer-box">
               <div className="spring-answer">
-                <ReactMarkdown>{answer}</ReactMarkdown>
+                <ReactMarkdown
+                  components={{
+                    a: ({ node, ...props }) => (
+                      <a {...props} target={props.href && props.href.startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer" style={{ color: '#7bbfdc', textDecoration: 'underline' }} />
+                    ),
+                  }}
+                >{answer}</ReactMarkdown>
               </div>
             </div>
           )}

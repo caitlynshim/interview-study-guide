@@ -29,7 +29,7 @@ export default async function handler(req, res) {
           limit: 3,
         },
       },
-      { $project: { content: 1, _id: 0 } },
+      { $project: { content: 1, title: 1, _id: 1 } },
     ];
 
     let results;
@@ -48,7 +48,7 @@ export default async function handler(req, res) {
     // Append references section
     if (results && results.length > 0) {
       const references = results
-        .map((r, idx) => `**[${idx + 1}]** ${r.title ? r.title + ': ' : ''}${r.content}`)
+        .map((r, idx) => `**[${idx + 1}]** [${r.title ? r.title : 'Experience'}](/navigate-experiences#${r._id}): ${r.content}`)
         .join('\n\n');
       answer += `\n\n---\n**References:**\n${references}`;
     }

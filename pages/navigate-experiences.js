@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 const SPRING = {
   bg: '#f7f8f3',
@@ -27,6 +27,7 @@ export default function NavigateExperiences() {
   const [editForm, setEditForm] = useState({ title: '', content: '', metadata: {} });
   const [editLoading, setEditLoading] = useState(false);
   const [editMetaError, setEditMetaError] = useState('');
+  const experienceRefs = useRef({});
 
   useEffect(() => {
     const fetchExperiences = async () => {
@@ -49,6 +50,23 @@ export default function NavigateExperiences() {
     };
     fetchExperiences();
   }, []);
+
+  // Expand experience if URL hash matches an _id
+  useEffect(() => {
+    const handleHash = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash && experiences.some(e => e._id === hash)) {
+        setExpandedId(hash);
+        // Scroll into view after DOM update
+        setTimeout(() => {
+          experienceRefs.current[hash]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+      }
+    };
+    handleHash();
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, [experiences]);
 
   // Filter by behavioral theme
   const filteredExperiences = selectedCategory === 'All'
@@ -90,6 +108,8 @@ export default function NavigateExperiences() {
               {filteredExperiences.map((exp) => (
                 <li
                   key={exp._id}
+                  id={exp._id}
+                  ref={el => experienceRefs.current[exp._id] = el}
                   className="spring-experience-item"
                   tabIndex={0}
                   aria-expanded={expandedId === exp._id}
