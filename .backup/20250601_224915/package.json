@@ -1,0 +1,27 @@
+{
+  "name": "interview-prep",
+  "version": "1.0.0",
+  "description": "Technical Interview Preparation Website",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev -p 3002",
+    "build": "next build",
+    "start": "next start -p 3002",
+    "import-questions": "node scripts/import-questions.js",
+    "test": "NODE_ENV=test jest",
+    "test:watch": "NODE_ENV=test jest --watch",
+    "test:integration": "NODE_ENV=test jest -c jest.integration.config.js",
+    "test:integration:watch": "NODE_ENV=test jest -c jest.integration.config.js --watch",
+    "update-schema": "node scripts/update-experience-schema.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "mongoose": "^8.0.0",
+    "next": "^14.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}
