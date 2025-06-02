@@ -22,7 +22,7 @@ export default async function handler(req, res) {
     const pipeline = [
       {
         $vectorSearch: {
-          index: 'experiences_embedding_index',
+          index: 'vector_search',
           queryVector: queryEmbedding,
           path: 'embedding',
           numCandidates: 100,
@@ -40,10 +40,18 @@ export default async function handler(req, res) {
       results = await Experience.find({}).limit(3).select('content -_id');
     }
 
-    const context = results.map((r, idx) => `(${idx + 1}) ${r.content}`).join('\n');
+    const context = results.map((r, idx) => `(${idx + 1}) ${r.title ? r.title + ': ' : ''}${r.content}`).join('\n');
 
     // 3. Generate answer via OpenAI
-    const answer = await generateAnswer({ question, context });
+    let answer = await generateAnswer({ question, context });
+
+    // Append references section
+    if (results && results.length > 0) {
+      const references = results
+        .map((r, idx) => `**[${idx + 1}]** ${r.title ? r.title + ': ' : ''}${r.content}`)
+        .join('\n\n');
+      answer += `\n\n---\n**References:**\n${references}`;
+    }
 
     res.status(200).json({ answer, context: results });
   } catch (error) {

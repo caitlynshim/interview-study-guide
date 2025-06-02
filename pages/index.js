@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 
 const SPRING = {
   bg: '#f7f8f3', // light olive-tinted background
@@ -182,7 +183,9 @@ export default function Home() {
             {answerError && <div className="spring-error">{answerError}</div>}
             {answer && (
               <div className="spring-answer-box">
-                <span className="spring-answer">{answer}</span>
+                <div className="spring-answer">
+                  <ReactMarkdown>{answer}</ReactMarkdown>
+                </div>
               </div>
             )}
           </div>

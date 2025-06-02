@@ -11,5 +11,14 @@ Answer a question page:
 - Allows the user to enter their own question
 -- once there is a question it will deplay it and provide a "generate answer" button.
 - the generate answer button will generate an answer from open ai, using the rag created through mongo's vector search on the expereinces collection
+- the generated answers should be specific to what's in the experiences collection, not general answers. 
+- Answers generated should include details and be in star format.
+
+The Add an experience pages should:
+- let the user add an experience to the expereinces collection
+- reindex and embed the question so it can be used in future "generate an answer" uses
+
+The Add a question page should:
+- Add a question to the questions collection
 
 Any errors will show the details so the user can understand why it failed.
