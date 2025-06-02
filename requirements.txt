@@ -1,0 +1,15 @@
+The desired end-state is a website that quizes the user on interview questions and can create answers based on a mongodb collection, vector search, and rag.
+
+The main page should:
+Have a header that allows the user to 
+- Answer a question
+- Add an experience
+- Add a question
+
+Answer a question page:
+- Allows the user to select a random quesiton from the questions collection. The user can select from the total collection, or narrow down by category
+- Allows the user to enter their own question
+-- once there is a question it will deplay it and provide a "generate answer" button.
+- the generate answer button will generate an answer from open ai, using the rag created through mongo's vector search on the expereinces collection
+
+Any errors will show the details so the user can understand why it failed.
