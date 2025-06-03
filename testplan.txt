@@ -1,0 +1,103 @@
+## Interview-Prep Web App – Comprehensive Testing Plan (v1.0)
+
+### Purpose
+Ensure the customer experience documented in *requirements.txt* remains intact as the codebase evolves. The plan follows a **thin-slice, incremental** approach: we write and stabilise one logical group of tests at a time, committing only when the suite is green.
+
+---
+### Testing Principles
+1. **Customer-centric** – validate behaviour observable by users, not internal implementation.
+2. **Fast & deterministic** – tests must run headlessly in CI under <60 s with no external prompts.
+3. **Isolated** – each test seeds/tears down its own data; the order of execution is irrelevant.
+4. **Single reason to fail** – each describes exactly one expectation.
+5. **Living documentation** – this file is updated whenever tests are added/changed.
+
+---
+### Tooling Stack
+| Layer              | Library             | Notes |
+|--------------------|---------------------|-------|
+| Unit / Integration | **Jest**            | Default runner + coverage |
+| React UI           | **@testing-library/react** | DOM-oriented assertions |
+| API Integration    | **supertest**       | Runs handlers via Next.js test server |
+| End-to-End (later) | **Playwright**      | Scriptable, headless E2E; _phase-3_ |
+| Fixtures           | **mongodb-memory-server** | Spawns in-memory MongoDB for isolation |
+| Coverage           | built-in Istanbul   | Gate ≥ 80 % statements on main modules |
+
+---
+### Phased Roadmap
+Each phase corresponds to a distinct area of the product. We will implement **all** tests in Phase-1 before unlocking Phase-2, etc.
+
+| Phase | Area / Feature (from requirements) | Test Types | Status |
+|-------|------------------------------------|------------|--------|
+| 1     | Navigation Bar                     | Unit / React | ✔ complete |
+| 2     | **Answer a Question** flow         | React, API int. | ☐ pending |
+| 3     | **Generate Answer (RAG)** pipeline | API unit/int. | ☐ pending |
+| 4     | **Add Experience** form            | React, API int. | ☐ pending |
+| 5     | **Navigate Experiences** browsing & edit | React, API int. | ☐ pending |
+| 6     | **Write-in Answer & Evaluation**   | React, API int. | ☐ pending |
+| 7     | **Practice Out Loud** (Speech-to-Text) | API int. | ☐ pending |
+| 8     | **Category Migration Script**      | Node script unit | ☐ pending |
+| 9     | End-to-End happy path (core flows) | Playwright | ☐ pending |
+
+Status legend: ☐ not started · ◔ in-progress · ✔ complete
+
+---
+### Detailed Test Objectives
+Below we list concrete test cases per phase. These will be ticked as they are implemented.
+
+#### Phase 1 – Navigation Bar
+1. **Navbar renders** on every page with correct title.
+2. **Links** highlight the current route.
+3. Unknown route → 404 page shows navbar with title.
+
+#### Phase 2 – Answer a Question
+4. Random question loads when button clicked (mock `/api/questions/random`).
+5. Generate button disabled with empty question; enabled otherwise.
+6. Generate Answer shows animated spinner during request.
+7. Successful response renders markdown answer blocks.
+8. Error response shows toast and no answer block.
+9. Reset button clears state and re-enables inputs.
+
+#### Phase 3 – RAG Pipeline (API)
+10. `/api/experiences/generate` returns answer that includes at least one snippet & reference link.
+11. Vector search index param (`index`) is passed in aggregation.
+12. Returns 400 if question missing.
+
+#### Phase 4 – Add Experience Form
+13. Form validation prevents submission of empty title/content.
+14. Successful POST displays success toast and redirects to Navigate page.
+15. Category auto-assignment occurs (mock OpenAI) and is stored.
+
+#### Phase 5 – Navigate Experiences
+16. Experiences list fetches from `/api/experiences/list` and renders cards.
+17. Category dropdown filters list.
+18. Clicking card expands details; second click collapses.
+19. Edit button opens pre-filled edit form.
+20. Successful save shows success message and re-renders card view-only.
+21. Failed save keeps form open and displays error.
+
+#### Phase 6 – Write-in & Evaluation
+22. Typing answer then Evaluate calls `/api/experiences/evaluate` and displays feedback markdown.
+23. Similarity check calls `/api/experiences/find-similar` and shows prompt when > 0.8.
+
+#### Phase 7 – Practice Out Loud
+24. Upload of recorded audio calls `/api/experiences/transcribe` and shows transcription.
+25. Error uploading empty file returns helpful error.
+
+#### Phase 8 – Migration Script
+26. `scripts/migrate-categories.js --dry-run` outputs proposed updates without writes.
+27. `--write` flag updates documents (mocked MongoDB).
+
+#### Phase 9 – End-to-End
+28. Full happy path: add experience → answer question → edit mapped experience → see changes in Navigate page.
+
+---
+### Implementation Workflow
+1. **Create tests for Phase-1** inside `__tests__/phase1_navbar.test.js`.
+2. Run `npm test`; ensure suite passes.
+3. Mark corresponding objectives as ✔ in this file.
+4. Push commit.
+5. Repeat for next phase.
+
+---
+### Next Action
+We will now implement **Phase-1 Navigation Bar tests**. 
