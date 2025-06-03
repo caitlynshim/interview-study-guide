@@ -31,7 +31,7 @@ Each phase corresponds to a distinct area of the product. We will implement **al
 | 1     | Navigation Bar                     | Unit / React | ✔ complete |
 | 2     | **Answer a Question** flow         | React, API int. | ✔ complete |
 | 3     | **Generate Answer (RAG)** pipeline | API unit/int. | ✔ complete |
-| 4     | **Add Experience** form            | React, API int. | ☐ pending |
+| 4     | **Add Experience** form            | React, API int. | ✔ complete |
 | 5     | **Navigate Experiences** browsing & edit | React, API int. | ☐ pending |
 | 6     | **Write-in Answer & Evaluation**   | React, API int. | ☐ pending |
 | 7     | **Practice Out Loud** (Speech-to-Text) | API int. | ☐ pending |
@@ -63,9 +63,9 @@ Below we list concrete test cases per phase. These will be ticked as they are im
 12. ✔ Returns 400 if question missing.
 
 #### Phase 4 – Add Experience Form
-13. Form validation prevents submission of empty title/content.
-14. Successful POST displays success toast and redirects to Navigate page.
-15. Category auto-assignment occurs (mock OpenAI) and is stored.
+13. ✔ Form validation prevents submission of empty title/content.
+14. ✔ Successful POST displays success toast and redirects to Navigate page.
+15. ✔ Category auto-assignment occurs (mock OpenAI) and is stored.
 
 #### Phase 5 – Navigate Experiences
 16. Experiences list fetches from `/api/experiences/list` and renders cards.
