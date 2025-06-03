@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 
@@ -228,6 +229,13 @@ export default function Home() {
               </button>
             </div>
           </div>
+
+          {/* Render generated answer */}
+          {answer && (
+            <div className="spring-answer-box">
+              <ReactMarkdown>{answer}</ReactMarkdown>
+            </div>
+          )}
 
           {/* Write-in answer area */}
           {showWriteIn && (

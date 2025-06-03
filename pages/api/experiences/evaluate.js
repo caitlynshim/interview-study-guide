@@ -13,7 +13,23 @@ export default async function handler(req, res) {
   try {
     await dbConnect();
     // 1. Evaluate the answer using OpenAI
-    const evalPrompt = `You are a world-class technical executive interviewer (CTO, AWS Bar Raiser). Critically evaluate the following answer to the interview question. Be specific about strengths, weaknesses, and improvement areas. Hold an extremely high bar: answers must be specific, result-oriented, data-driven, and use 'I' language (not 'we'). Highlight business impact and unique contributions. If the answer is vague, generic, or lacks metrics, call it out. Format your feedback in markdown with clear sections: Strengths, Areas for Improvement, and Overall Assessment.\n\nQuestion: ${question}\n\nAnswer: ${answer}`;
+    const evalPrompt = `You are a world-class technical executive interviewer (CEO, CTO, AWS Bar Raiser). Critically evaluate the following answer to the interview question as if you were a tech executive. Your goal is to assess both the content and the speaking style, as if you were deciding whether to trust and be persuaded by this candidate as a peer executive.
+
+**Content:**
+- Be specific about strengths, weaknesses, and improvement areas.
+- Hold an extremely high bar: answers must be specific, result-oriented, data-driven, and use 'I' language (not 'we').
+- Highlight business impact and unique contributions. If the answer is vague, generic, or lacks metrics, call it out.
+
+**Speaking Patterns:**
+- Assess the candidate's speaking style based on the transcript. Consider clarity, confidence, executive presence, use of filler words ("um", "uh", etc.), and whether the answer is persuasive and easy to follow.
+- Comment on whether the candidate comes across as a confident, intelligent executive.
+- Give actionable guidance for improving speaking clarity, executive communication, and style. Suggest how the candidate could better ensure the executive audience believes, understands, and is persuaded by their answer.
+
+Format your feedback in markdown with clear sections: Strengths, Areas for Improvement, Speaking Patterns, and Overall Assessment.
+
+Question: ${question}
+
+Answer: ${answer}`;
     const evalResp = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
       messages: [

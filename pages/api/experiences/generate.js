@@ -36,8 +36,27 @@ export default async function handler(req, res) {
     try {
       results = await Experience.aggregate(pipeline);
     } catch (err) {
-      console.error('Vector search failed, falling back to random docs', err.message);
-      results = await Experience.find({}).limit(3).select('content -_id');
+      console.error('Vector search failed, falling back to $search or random docs', err);
+      // Try fallback to $search if available
+      try {
+        const fallbackPipeline = [
+          {
+            $search: {
+              index: 'vector_search',
+              knnBeta: {
+                vector: queryEmbedding,
+                path: 'embedding',
+                k: 3
+              }
+            }
+          },
+          { $project: { content: 1, title: 1, _id: 1 } },
+        ];
+        results = await Experience.aggregate(fallbackPipeline);
+      } catch (fallbackErr) {
+        console.error('Fallback $search failed, returning random docs', fallbackErr);
+        results = await Experience.find({}).limit(3).select('content -_id');
+      }
     }
 
     const context = results.map((r, idx) => `(${idx + 1}) ${r.title ? r.title + ': ' : ''}${r.content}`).join('\n');
