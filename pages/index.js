@@ -1,6 +1,8 @@
-import React from 'react';
-import { useState, useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
+import { useState, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { useRouter } from 'next/router';
+import { diffLines } from 'diff';
 
 const SPRING = {
   bg: '#f7f8f3', // light olive-tinted background
@@ -17,6 +19,25 @@ const SPRING = {
   beige: '#f3ede4',
   blush: '#f7e6e6', // soft blush for subtle highlights
 };
+
+// Animated ellipsis component
+function AnimatedEllipsis() {
+  return <span className="ellipsis">&nbsp;<span>.</span><span>.</span><span>.</span><style jsx>{`
+    .ellipsis span {
+      opacity: 0.2;
+      animation: blink 1.2s infinite;
+      font-weight: bold;
+      font-size: 1.2em;
+    }
+    .ellipsis span:nth-child(1) { animation-delay: 0s; }
+    .ellipsis span:nth-child(2) { animation-delay: 0.3s; }
+    .ellipsis span:nth-child(3) { animation-delay: 0.6s; }
+    @keyframes blink {
+      0%, 80%, 100% { opacity: 0.2; }
+      40% { opacity: 1; }
+    }
+  `}</style></span>;
+}
 
 export default function Home() {
   const [categories, setCategories] = useState(['All']);
@@ -42,8 +63,14 @@ export default function Home() {
   const [transcript, setTranscript] = useState('');
   const [transcribeLoading, setTranscribeLoading] = useState(false);
   const [transcribeError, setTranscribeError] = useState('');
+  const [showAddExperience, setShowAddExperience] = useState(false);
+  const [addExpFields, setAddExpFields] = useState({ title: '', content: '', tags: '', category: '', role: '', date: '' });
+  const [addExpLoading, setAddExpLoading] = useState(false);
+  const [addExpError, setAddExpError] = useState('');
+  const [addExpSuccess, setAddExpSuccess] = useState('');
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -130,6 +157,11 @@ export default function Home() {
     return true;
   };
 
+  // Add a resetAll function
+  function resetAll() {
+    setAnswer(''); setAnswerError(''); setShowWriteIn(false); setWriteInAnswer(''); setEvaluation(''); setEvalError(''); setEvalLoading(false); setSuggestedUpdate(null); setMatchedExperience(null); setShowPractice(false); setRecording(false); setAudioUrl(null); setTranscript(''); setTranscribeError(''); setTranscribeLoading(false); setShowAddExperience(false); setAddExpFields({ title: '', content: '', tags: '', category: '', role: '', date: '' }); setAddExpError(''); setAddExpSuccess('');
+  }
+
   return (
     <div className="spring-bg">
       {/* Navigation Bar */}
@@ -200,6 +232,7 @@ export default function Home() {
                 className="spring-generate-btn"
                 onClick={() => {
                   if (!requireQuestion()) return;
+                  resetAll();
                   handleGenerateAnswer();
                 }}
                 disabled={loading}
@@ -211,6 +244,7 @@ export default function Home() {
                 className="spring-writein-btn"
                 onClick={() => {
                   if (!requireQuestion()) return;
+                  resetAll();
                   setShowWriteIn(true);
                 }}
                 style={{ minWidth: 160, background: '#e6e9d8', color: '#4a5a23', border: '1px solid #bfc7a1', fontWeight: 600 }}
@@ -221,6 +255,7 @@ export default function Home() {
                 className="spring-practice-btn"
                 onClick={() => {
                   if (!requireQuestion()) return;
+                  resetAll();
                   setShowPractice(true);
                 }}
                 style={{ minWidth: 160, background: '#f7e6d8', color: '#7b4a23', border: '1px solid #e0bfa1', fontWeight: 600 }}
@@ -231,6 +266,11 @@ export default function Home() {
           </div>
 
           {/* Render generated answer */}
+          {answerLoading && (
+            <div className="spring-answer-box" style={{ textAlign: 'center', fontWeight: 500, fontSize: '1.1em' }}>
+              Generating answer<AnimatedEllipsis />
+            </div>
+          )}
           {answer && (
             <div className="spring-answer-box">
               <ReactMarkdown>{answer}</ReactMarkdown>
@@ -272,44 +312,68 @@ export default function Home() {
                 }}
                 disabled={evalLoading || !writeInAnswer.trim()}
               >
-                {evalLoading ? 'Evaluating...' : 'Submit for Evaluation'}
+                Submit for Evaluation
               </button>
-              {evalError && <div className="spring-error">{evalError}</div>}
-              {evaluation && (
-                <div className="spring-answer" style={{ marginTop: 16 }}>
-                  <ReactMarkdown>{evaluation}</ReactMarkdown>
+              {evalLoading && (
+                <div style={{ textAlign: 'center', fontWeight: 500, fontSize: '1.1em', margin: '1em 0' }}>
+                  Evaluating<AnimatedEllipsis />
                 </div>
               )}
-              {matchedExperience && suggestedUpdate && (
-                <div className="spring-answer" style={{ marginTop: 16, background: SPRING.accent3, padding: 16, borderRadius: 8 }}>
-                  <b>This answer matches an existing experience:</b>
-                  <div style={{ margin: '8px 0' }}><b>Title:</b> {matchedExperience.title}</div>
-                  <div style={{ margin: '8px 0' }}><b>Current Content:</b> <pre style={{ whiteSpace: 'pre-wrap' }}>{matchedExperience.content}</pre></div>
-                  <div style={{ margin: '8px 0' }}><b>Suggested Update:</b> <pre style={{ whiteSpace: 'pre-wrap' }}>{suggestedUpdate.content}</pre></div>
-                  <button
-                    className="spring-btn"
-                    style={{ background: SPRING.accent, color: '#fff', minWidth: 180, marginRight: 12 }}
-                    onClick={async () => {
-                      try {
-                        const resp = await fetch(`/api/experiences/edit?id=${matchedExperience._id}`, {
-                          method: 'PUT',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ title: matchedExperience.title, content: suggestedUpdate.content, metadata: matchedExperience.metadata }),
+              {showWriteIn && evaluation && !evalLoading && (
+                <div className="spring-eval-box">
+                  <ReactMarkdown>{evaluation}</ReactMarkdown>
+                  {matchedExperience && suggestedUpdate ? (
+                    <div className="spring-match-prompt" style={{marginTop: '1.5em', background: '#f7f8f3', border: '1px solid #bfc7a1', borderRadius: 8, padding: '1.2em'}}>
+                      <div style={{fontWeight: 600, marginBottom: 8}}>
+                        This answer matches an existing experience:
+                      </div>
+                      {(matchedExperience.content && suggestedUpdate.content) ? (
+                        <div style={{display: 'flex', gap: 24, alignItems: 'flex-start', marginBottom: 8}}>
+                          <div style={{flex: 1}}>
+                            <b>Old Experience</b>
+                            <pre style={{background: '#fff0ee', borderRadius: 4, padding: 8, marginTop: 4, minHeight: 80, whiteSpace: 'pre-wrap', wordBreak: 'break-word'}}>
+                              {diffLines(matchedExperience.content, suggestedUpdate.content).map((part, i) =>
+                                <span key={i} style={{background: part.removed ? '#ffeaea' : undefined, color: part.removed ? '#c0392b' : undefined}}>{part.removed ? part.value : null}</span>
+                              )}
+                            </pre>
+                          </div>
+                          <div style={{flex: 1}}>
+                            <b>Suggested Update</b>
+                            <pre style={{background: '#e7ecd9', borderRadius: 4, padding: 8, marginTop: 4, minHeight: 80, whiteSpace: 'pre-wrap', wordBreak: 'break-word'}}>
+                              {diffLines(matchedExperience.content, suggestedUpdate.content).map((part, i) =>
+                                <span key={i} style={{background: part.added ? '#e6ffe6' : undefined, color: part.added ? '#217a3c' : undefined}}>{part.added ? part.value : null}</span>
+                              )}
+                            </pre>
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{color: '#c0392b', marginBottom: 8}}>Unable to show diff: missing content.</div>
+                      )}
+                      <div style={{display: 'flex', gap: '1em', marginTop: 12}}>
+                        <button className="spring-btn" style={{background: '#bfc7a1', color: '#4a5a23'}} onClick={() => {
+                          router.push({
+                            pathname: '/navigate-experiences',
+                            query: { editId: matchedExperience._id, suggested: JSON.stringify(suggestedUpdate) },
+                          });
+                        }}>Edit Existing</button>
+                        <button className="spring-btn" style={{background: '#e6e9d8', color: '#4a5a23'}} onClick={() => {
+                          setMatchedExperience(null); setSuggestedUpdate(null); setShowAddExperience(true);
+                        }}>Continue New</button>
+                      </div>
+                    </div>
+                  ) : null}
+                  {!matchedExperience && !suggestedUpdate && (
+                    <div className="spring-no-match-prompt" style={{marginTop: '1.5em', background: '#f7f8f3', border: '1px solid #bfc7a1', borderRadius: 8, padding: '1.2em'}}>
+                      <div style={{fontWeight: 600, marginBottom: 8}}>No similar experience found.</div>
+                      <div style={{marginBottom: 8}}>Would you like to add this as a new experience?</div>
+                      <button className="spring-btn" style={{background: '#bfc7a1', color: '#4a5a23'}} onClick={() => {
+                        router.push({
+                          pathname: '/add-experience',
+                          query: { title: question, content: writeInAnswer },
                         });
-                        const data = await resp.json();
-                        if (!resp.ok) throw new Error(data.message || 'Failed to update experience');
-                        alert('Experience updated!');
-                        setMatchedExperience(null); setSuggestedUpdate(null);
-                      } catch (err) {
-                        alert('Update failed: ' + err.message);
-                      }
-                    }}
-                  >Approve update</button>
-                  <button
-                    className="spring-btn"
-                    style={{ background: SPRING.gray, color: '#fff', minWidth: 120 }}
-                    onClick={() => { setMatchedExperience(null); setSuggestedUpdate(null); }}
-                  >Reject</button>
+                      }}>Add Experience</button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -381,53 +445,19 @@ export default function Home() {
                     } finally {
                       setTranscribeLoading(false);
                     }
-                  }} disabled={transcribeLoading} style={{ marginLeft: '1rem', background: '#e6e9d8', color: '#4a5a23', fontWeight: 600 }}>Transcribe & Evaluate</button>
-                  {transcribeLoading && <span style={{ marginLeft: 8 }}>Transcribing...</span>}
-                  {transcribeError && (
-                    <div style={{ color: 'red', marginTop: 8 }}>
-                      {typeof transcribeError === 'string' ? (
-                        transcribeError
-                      ) : (
-                        <pre style={{ fontSize: '0.92em', marginTop: 4, background: '#fff0ee', color: '#a33', padding: 8, borderRadius: 6, overflowX: 'auto' }}>
-                          {transcribeError.message && `Message: ${transcribeError.message}\n`}
-                          {transcribeError.error && `Error: ${transcribeError.error}\n`}
-                          {transcribeError.stack && `Stack: ${transcribeError.stack}`}
-                        </pre>
-                      )}
+                  }} disabled={transcribeLoading} style={{ marginLeft: '1rem', background: '#e6e9d8', color: '#4a5a23', fontWeight: 600 }}>
+                    Transcribe & Evaluate
+                  </button>
+                  {transcribeLoading && (
+                    <span style={{ marginLeft: 8 }}>
+                      Transcribing<AnimatedEllipsis />
+                    </span>
+                  )}
+                  {evalLoading && (
+                    <div style={{ textAlign: 'center', fontWeight: 500, fontSize: '1.1em', margin: '1em 0' }}>
+                      Evaluating<AnimatedEllipsis />
                     </div>
                   )}
-                </div>
-              )}
-              {transcript && (
-                <div style={{ marginTop: '1rem' }}>
-                  <div style={{ fontWeight: 600, marginBottom: 4 }}>Transcribed Text:</div>
-                  <textarea value={transcript} readOnly rows={6} style={{ width: '100%', marginBottom: 8 }} />
-                  <button onClick={async () => {
-                    setEvalLoading(true);
-                    setEvalError('');
-                    setEvaluation('');
-                    try {
-                      const resp = await fetch('/api/experiences/evaluate', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ question, answer: transcript, mode: 'speech' }),
-                      });
-                      const data = await resp.json();
-                      if (resp.ok) {
-                        setEvaluation(data.evaluation);
-                        setSuggestedUpdate(data.suggestedUpdate || null);
-                        setMatchedExperience(data.matchedExperience || null);
-                        console.log('Evaluation set:', data.evaluation);
-                      } else {
-                        setEvalError(data.message || 'Evaluation failed');
-                      }
-                    } catch (err) {
-                      setEvalError('Evaluation error: ' + err.message);
-                    } finally {
-                      setEvalLoading(false);
-                    }
-                  }} disabled={evalLoading} style={{ background: '#e6e9d8', color: '#4a5a23', fontWeight: 600 }}>Submit for Evaluation</button>
-                  {evalLoading && <span style={{ marginLeft: 8 }}>Evaluating...</span>}
                   {evalError && <div style={{ color: 'red', marginTop: 8 }}>{evalError}</div>}
                   {evaluation && (
                     <div className="spring-answer" style={{ marginTop: 16 }}>
@@ -440,6 +470,12 @@ export default function Home() {
           )}
         </div>
       </main>
+      {/* Add a Reset button when answer or evaluation is shown */}
+      {(answer || evaluation) && (
+        <div style={{ textAlign: 'right', marginTop: 8 }}>
+          <button className="spring-btn" style={{ background: SPRING.gray, color: '#fff', minWidth: 100 }} onClick={resetAll}>Reset</button>
+        </div>
+      )}
       <style jsx>{`
         .spring-bg {
           min-height: 100vh;

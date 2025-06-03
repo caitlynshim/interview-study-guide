@@ -1,2 +1,4 @@
+- after writing in an experience and clicking evaluate it directs me stright to creating a new one, insteading giving me a rpompt.
+- experience 
 - Have gen-ai categorize the experiences for you after an edit and after a new experience submission. 
 - add "add experience" to the question generator.

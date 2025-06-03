@@ -29,8 +29,8 @@ Each phase corresponds to a distinct area of the product. We will implement **al
 | Phase | Area / Feature (from requirements) | Test Types | Status |
 |-------|------------------------------------|------------|--------|
 | 1     | Navigation Bar                     | Unit / React | ✔ complete |
-| 2     | **Answer a Question** flow         | React, API int. | ☐ pending |
-| 3     | **Generate Answer (RAG)** pipeline | API unit/int. | ☐ pending |
+| 2     | **Answer a Question** flow         | React, API int. | ✔ complete |
+| 3     | **Generate Answer (RAG)** pipeline | API unit/int. | ✔ complete |
 | 4     | **Add Experience** form            | React, API int. | ☐ pending |
 | 5     | **Navigate Experiences** browsing & edit | React, API int. | ☐ pending |
 | 6     | **Write-in Answer & Evaluation**   | React, API int. | ☐ pending |
@@ -50,17 +50,17 @@ Below we list concrete test cases per phase. These will be ticked as they are im
 3. Unknown route → 404 page shows navbar with title.
 
 #### Phase 2 – Answer a Question
-4. Random question loads when button clicked (mock `/api/questions/random`).
-5. Generate button disabled with empty question; enabled otherwise.
-6. Generate Answer shows animated spinner during request.
-7. Successful response renders markdown answer blocks.
-8. Error response shows toast and no answer block.
-9. Reset button clears state and re-enables inputs.
+4. ✔ Random question loads when button clicked (mock `/api/questions/random`).
+5. ✔ Generate button disabled with empty question; enabled otherwise.
+6. ✔ Generate Answer shows animated spinner during request.
+7. ✔ Successful response renders markdown answer blocks.
+8. ✔ Error response shows toast and no answer block.
+9. ✔ Reset button clears state and re-enables inputs.
 
 #### Phase 3 – RAG Pipeline (API)
-10. `/api/experiences/generate` returns answer that includes at least one snippet & reference link.
-11. Vector search index param (`index`) is passed in aggregation.
-12. Returns 400 if question missing.
+10. ✔ `/api/experiences/generate` returns answer that includes at least one snippet & reference link.
+11. ✔ Vector search index param (`index`) is passed in aggregation.
+12. ✔ Returns 400 if question missing.
 
 #### Phase 4 – Add Experience Form
 13. Form validation prevents submission of empty title/content.

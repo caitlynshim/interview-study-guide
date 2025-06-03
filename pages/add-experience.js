@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 
 const SPRING = {
   bg: '#f7f8f3',
@@ -24,6 +25,7 @@ function validate(fields) {
 }
 
 export default function AddExperience() {
+  const router = useRouter();
   const [fields, setFields] = useState({
     title: '',
     content: '',
@@ -36,6 +38,21 @@ export default function AddExperience() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState('');
   const [submitError, setSubmitError] = useState('');
+
+  // On mount, prefill from query if present
+  useEffect(() => {
+    if (router.isReady) {
+      setFields(f => ({
+        ...f,
+        title: router.query.title || f.title,
+        content: router.query.content || f.content,
+        tags: router.query.tags || f.tags,
+        category: router.query.category || f.category,
+        role: router.query.role || f.role,
+        date: router.query.date || f.date,
+      }));
+    }
+  }, [router.isReady, router.query]);
 
   const handleChange = e => {
     const { name, value } = e.target;
@@ -373,6 +390,18 @@ if (typeof describe === 'function') {
         '/api/experiences/add',
         expect.objectContaining({ method: 'POST' })
       );
+    });
+  });
+}
+
+// TEST: Component renders without crashing
+if (typeof describe === 'function') {
+  describe('AddExperience component', () => {
+    it('renders without crashing', () => {
+      const React = require('react');
+      const { render } = require('@testing-library/react');
+      const AddExperience = require('./add-experience.js').default;
+      render(React.createElement(AddExperience));
     });
   });
 } 

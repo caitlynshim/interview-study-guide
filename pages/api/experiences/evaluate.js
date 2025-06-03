@@ -1,6 +1,6 @@
 import dbConnect from '../../../lib/mongodb';
-import { generateEmbedding, openai } from '../../../lib/openai';
-import Experience from '../../../models/Experience';
+import { openai } from '../../../lib/openai';
+import fetch from 'node-fetch';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -39,47 +39,76 @@ Answer: ${answer}`;
       temperature: 0.2,
     });
     const evaluation = evalResp.choices[0].message.content.trim();
-    // 2. Embed the answer and search for similar experiences
-    const answerEmbedding = await generateEmbedding(answer);
-    const pipeline = [
-      {
-        $vectorSearch: {
-          index: 'vector_search',
-          queryVector: answerEmbedding,
-          path: 'embedding',
-          numCandidates: 100,
-          limit: 1,
-        },
-      },
-      { $project: { content: 1, title: 1, _id: 1, metadata: 1 } },
-    ];
+    // 2. Find similar experience using the new endpoint
     let match = null;
+    let similarity = 0;
     try {
-      const results = await Experience.aggregate(pipeline);
-      if (results && results.length > 0) {
-        // Only consider a match if similarity is high (not available directly, so use content similarity heuristics)
-        match = results[0];
+      const resp = await fetch('http://localhost:3002/api/experiences/find-similar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: answer }),
+      });
+      const data = await resp.json();
+      if (resp.ok && data.match) {
+        match = data.match;
+        similarity = data.similarity;
       }
     } catch (err) {
       // fallback: no match
+      match = null;
     }
     let suggestedUpdate = null;
     if (match) {
-      // Suggest an update if the answer is more detailed or different
-      const updatePrompt = `You are an expert at merging and improving interview experiences. Given the existing experience and the new answer, suggest an improved version that combines the best details, adds missing metrics, and ensures specificity, 'I' language, and business impact. Format as markdown.\n\nExisting Experience:\n${match.content}\n\nNew Answer:\n${answer}\n\nImproved Experience:`;
-      const updateResp = await openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          { role: 'system', content: 'You are an expert at merging and improving interview experiences.' },
-          { role: 'user', content: updatePrompt },
-        ],
-        temperature: 0.2,
-      });
-      suggestedUpdate = { content: updateResp.choices[0].message.content.trim() };
+      // Suggest an update using the new endpoint
+      try {
+        const resp = await fetch('http://localhost:3002/api/experiences/suggest-edits', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ original: match.content, newText: answer }),
+        });
+        const data = await resp.json();
+        if (resp.ok && data.suggested) {
+          suggestedUpdate = { content: data.suggested, diff: data.diff };
+        }
+      } catch (err) {
+        suggestedUpdate = null;
+      }
     }
-    res.status(200).json({ evaluation, suggestedUpdate, matchedExperience: match });
+    res.status(200).json({ evaluation, suggestedUpdate, matchedExperience: match, similarity });
   } catch (error) {
     console.error('Evaluate error:', error, error.stack);
     res.status(500).json({ message: 'Internal server error', error: error.message, stack: error.stack });
   }
+}
+
+// TEST: Evaluate handler uses new endpoints
+if (typeof describe === 'function') {
+  jest.mock('node-fetch', () => jest.fn());
+  const fetchMock = require('node-fetch');
+  describe('POST /api/experiences/evaluate', () => {
+    it('returns 400 if missing fields', async () => {
+      const req = { method: 'POST', body: {} };
+      const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+      await module.exports(req, res);
+      expect(res.status).toHaveBeenCalledWith(400);
+    });
+    it('calls find-similar and suggest-edits endpoints', async () => {
+      fetchMock.mockImplementation((url, opts) => {
+        if (url.includes('find-similar')) {
+          return Promise.resolve({ ok: true, json: () => Promise.resolve({ match: { content: 'old', title: 't', _id: '1', metadata: {} }, similarity: 0.9 }) });
+        }
+        if (url.includes('suggest-edits')) {
+          return Promise.resolve({ ok: true, json: () => Promise.resolve({ suggested: 'improved', diff: 'diff' }) });
+        }
+        return Promise.resolve({ ok: false, json: () => Promise.resolve({}) });
+      });
+      const req = { method: 'POST', body: { question: 'Q', answer: 'A' } };
+      const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+      await handler(req, res);
+      expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining('find-similar'), expect.any(Object));
+      expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining('suggest-edits'), expect.any(Object));
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ evaluation: expect.any(String), suggestedUpdate: expect.any(Object), matchedExperience: expect.any(Object) }));
+    });
+  });
 } 

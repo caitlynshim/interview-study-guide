@@ -1,4 +1,7 @@
+import React from 'react';
 import { useEffect, useState, useRef } from 'react';
+import { useRouter } from 'next/router';
+import { diffLines } from 'diff';
 
 const SPRING = {
   bg: '#f7f8f3',
@@ -27,7 +30,10 @@ export default function NavigateExperiences() {
   const [editForm, setEditForm] = useState({ title: '', content: '', metadata: {} });
   const [editLoading, setEditLoading] = useState(false);
   const [editMetaError, setEditMetaError] = useState('');
+  const [editSuccess, setEditSuccess] = useState('');
+  const [highlightedId, setHighlightedId] = useState(null);
   const experienceRefs = useRef({});
+  const router = useRouter();
 
   useEffect(() => {
     const fetchExperiences = async () => {
@@ -50,6 +56,41 @@ export default function NavigateExperiences() {
     };
     fetchExperiences();
   }, []);
+
+  useEffect(() => {
+    if (router.isReady && router.query.editId) {
+      setExpandedId(router.query.editId);
+      setEditingId(router.query.editId);
+      let suggested = null;
+      if (router.query.suggested) {
+        try {
+          suggested = JSON.parse(router.query.suggested);
+        } catch {}
+      }
+      // Find the experience being edited
+      const exp = experiences.find(e => e._id === router.query.editId);
+      if (exp) {
+        setEditForm(f => ({
+          ...f,
+          title: (suggested && suggested.title) || exp.title || '',
+          content: (suggested && suggested.content) || exp.content || '',
+          metadata: exp.metadata || {}
+        }));
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.isReady, router.query.editId, experiences]);
+
+  useEffect(() => {
+    if (router.isReady && router.query.editId && experienceRefs.current[router.query.editId]) {
+      setTimeout(() => {
+        experienceRefs.current[router.query.editId]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Focus the first input in the edit form
+        const input = experienceRefs.current[router.query.editId]?.querySelector('input, textarea');
+        if (input) input.focus();
+      }, 200);
+    }
+  }, [router.isReady, router.query.editId, experiences]);
 
   // Expand experience if URL hash matches an _id
   useEffect(() => {
@@ -117,8 +158,11 @@ export default function NavigateExperiences() {
                   onKeyDown={e => {
                     if (e.key === 'Enter' || e.key === ' ') setExpandedId(expandedId === exp._id ? null : exp._id);
                   }}
-                  style={{ cursor: 'pointer', outline: expandedId === exp._id ? `2px solid ${SPRING.accent}` : 'none' }}
+                  style={{ cursor: 'pointer', outline: expandedId === exp._id ? `2px solid ${SPRING.accent}` : 'none', background: highlightedId === exp._id ? '#e7ecd9' : SPRING.accent3, transition: 'background 0.4s' }}
                 >
+                  {editSuccess && highlightedId === exp._id && (
+                    <div style={{ color: SPRING.accent, fontWeight: 600, marginBottom: 8, background: '#f7f8f3', borderRadius: 6, padding: '0.4em 1em' }}>{editSuccess}</div>
+                  )}
                   <div className="spring-experience-title">{exp.title}</div>
                   <div className="spring-experience-category">{exp.category || 'Uncategorized'}</div>
                   {expandedId === exp._id && editingId !== exp._id ? (
@@ -167,61 +211,110 @@ export default function NavigateExperiences() {
                         >
                           Delete
                         </button>
-                        <button
-                          className="spring-edit-btn"
-                          onClick={e => {
-                            e.stopPropagation();
-                            setEditingId(exp._id);
-                            setEditForm({ title: exp.title, content: exp.content, metadata: exp.metadata || {} });
-                          }}
-                          type="button"
-                          style={{ background: SPRING.accent, color: '#fff', border: 'none', borderRadius: 7, padding: '0.5rem 1.2rem', fontWeight: 600, cursor: 'pointer' }}
-                        >
-                          Edit
-                        </button>
+                        {highlightedId !== exp._id && (
+                          <button
+                            className="spring-edit-btn"
+                            onClick={e => {
+                              e.stopPropagation();
+                              let suggested = null;
+                              if (router.query.suggested) {
+                                try {
+                                  suggested = JSON.parse(router.query.suggested);
+                                } catch {}
+                              }
+                              setEditingId(exp._id);
+                              setEditForm({
+                                title: (suggested && suggested.title) || exp.title || '',
+                                content: (suggested && suggested.content) || exp.content || '',
+                                metadata: exp.metadata || {}
+                              });
+                            }}
+                            type="button"
+                            style={{ background: SPRING.accent, color: '#fff', border: 'none', borderRadius: 7, padding: '0.5rem 1.2rem', fontWeight: 600, cursor: 'pointer' }}
+                          >
+                            Edit
+                          </button>
+                        )}
                       </div>
                     </div>
                   ) : null}
                   {editingId === exp._id && (
-                    <form
-                      className="spring-edit-form"
-                      style={{ marginTop: '1.2rem', background: SPRING.accent3, borderRadius: 8, padding: '1.2rem' }}
-                      onSubmit={async e => {
-                        e.preventDefault();
-                        setEditLoading(true);
-                        setError('');
-                        try {
-                          const resp = await fetch(`/api/experiences/edit?id=${exp._id}`, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ title: editForm.title, content: editForm.content }),
-                          });
-                          const data = await resp.json();
-                          if (!resp.ok) throw new Error(data.message || 'Failed to update');
-                          setExperiences(experiences => experiences.map(e => e._id === exp._id ? { ...e, ...editForm, metadata: e.metadata } : e));
-                          setEditingId(null);
-                        } catch (err) {
-                          setError(`Edit failed: ${err.message}`);
-                        } finally {
-                          setEditLoading(false);
+                    <>
+                      {/* Show diff if suggested update is present in query */}
+                      {router.query.suggested && (() => {
+                        let oldContent = exp.content;
+                        let newContent = '';
+                        try { newContent = JSON.parse(router.query.suggested).content; } catch {}
+                        if (oldContent && newContent) {
+                          const diffs = diffLines(oldContent, newContent);
+                          return (
+                            <div style={{display: 'flex', gap: 24, alignItems: 'flex-start', marginBottom: 16}}>
+                              <div style={{flex: 1}}>
+                                <b>Old Experience</b>
+                                <pre style={{background: '#fff0ee', borderRadius: 4, padding: 8, marginTop: 4, minHeight: 80, whiteSpace: 'pre-wrap', wordBreak: 'break-word'}}>
+                                  {diffs.map((part, i) => part.removed ? <span key={i} style={{background: '#ffeaea', color: '#c0392b'}}>{part.value}</span> : null)}
+                                </pre>
+                              </div>
+                              <div style={{flex: 1}}>
+                                <b>Suggested Update</b>
+                                <pre style={{background: '#e7ecd9', borderRadius: 4, padding: 8, marginTop: 4, minHeight: 80, whiteSpace: 'pre-wrap', wordBreak: 'break-word'}}>
+                                  {diffs.map((part, i) => part.added ? <span key={i} style={{background: '#e6ffe6', color: '#217a3c'}}>{part.value}</span> : null)}
+                                </pre>
+                              </div>
+                            </div>
+                          );
                         }
-                      }}
-                    >
-                      <div style={{ marginBottom: '0.7rem' }}>
-                        <label style={{ fontWeight: 500 }}>Title:<br />
-                          <input type="text" value={editForm.title} onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))} style={{ width: '100%', padding: '0.4rem', borderRadius: 5, border: `1px solid ${SPRING.accent2}` }} required />
-                        </label>
-                      </div>
-                      <div style={{ marginBottom: '0.7rem' }}>
-                        <label style={{ fontWeight: 500 }}>Content:<br />
-                          <textarea value={editForm.content} onChange={e => setEditForm(f => ({ ...f, content: e.target.value }))} style={{ width: '100%', minHeight: 80, padding: '0.4rem', borderRadius: 5, border: `1px solid ${SPRING.accent2}` }} required />
-                        </label>
-                      </div>
-                      <div style={{ display: 'flex', gap: '1rem', marginTop: '0.7rem' }}>
-                        <button type="submit" disabled={editLoading} style={{ background: SPRING.accent, color: '#fff', border: 'none', borderRadius: 7, padding: '0.5rem 1.2rem', fontWeight: 600, cursor: 'pointer' }}>Save</button>
-                        <button type="button" onClick={() => setEditingId(null)} style={{ background: SPRING.gray, color: '#fff', border: 'none', borderRadius: 7, padding: '0.5rem 1.2rem', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
-                      </div>
-                    </form>
+                        return null;
+                      })()}
+                      <form
+                        className="spring-edit-form"
+                        style={{ marginTop: '1.2rem', background: SPRING.accent3, borderRadius: 8, padding: '1.2rem' }}
+                        onSubmit={async e => {
+                          e.preventDefault();
+                          setEditLoading(true);
+                          setError('');
+                          try {
+                            const resp = await fetch(`/api/experiences/edit?id=${exp._id}`, {
+                              method: 'PUT',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ title: editForm.title, content: editForm.content }),
+                            });
+                            const data = await resp.json();
+                            if (!resp.ok) throw new Error(data.message || 'Failed to update');
+                            setExperiences(experiences => experiences.map(e => e._id === exp._id ? { ...e, ...editForm, metadata: e.metadata } : e));
+                            // Remove editId and suggested param from URL after successful save
+                            if (router.query.editId || router.query.suggested) {
+                              const { editId, suggested, ...rest } = router.query;
+                              router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true });
+                            }
+                            setEditingId(null);
+                            setEditForm({ title: '', content: '', metadata: {} });
+                            setEditSuccess('Experience updated successfully!');
+                            setHighlightedId(exp._id);
+                            setTimeout(() => { setEditSuccess(''); setHighlightedId(null); }, 2500);
+                          } catch (err) {
+                            setError(`Edit failed: ${err.message}`);
+                          } finally {
+                            setEditLoading(false);
+                          }
+                        }}
+                      >
+                        <div style={{ marginBottom: '0.7rem' }}>
+                          <label style={{ fontWeight: 500 }}>Title:<br />
+                            <input type="text" value={editForm.title} onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))} style={{ width: '100%', padding: '0.4rem', borderRadius: 5, border: `1px solid ${SPRING.accent2}` }} required />
+                          </label>
+                        </div>
+                        <div style={{ marginBottom: '0.7rem' }}>
+                          <label style={{ fontWeight: 500 }}>Content:<br />
+                            <textarea value={editForm.content} onChange={e => setEditForm(f => ({ ...f, content: e.target.value }))} style={{ width: '100%', minHeight: 80, padding: '0.4rem', borderRadius: 5, border: `1px solid ${SPRING.accent2}` }} required />
+                          </label>
+                        </div>
+                        <div style={{ display: 'flex', gap: '1rem', marginTop: '0.7rem' }}>
+                          <button type="submit" disabled={editLoading} style={{ background: SPRING.accent, color: '#fff', border: 'none', borderRadius: 7, padding: '0.5rem 1.2rem', fontWeight: 600, cursor: 'pointer' }}>Save</button>
+                          <button type="button" onClick={() => setEditingId(null)} style={{ background: SPRING.gray, color: '#fff', border: 'none', borderRadius: 7, padding: '0.5rem 1.2rem', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
+                        </div>
+                      </form>
+                    </>
                   )}
                 </li>
               ))}
@@ -450,6 +543,18 @@ if (typeof describe === 'function') {
       // Simulate edit
       setExperiences(exps.map(e => e._id === '1' ? { ...e, ...updated } : e));
       expect(setExperiences).toBeCalled;
+    });
+  });
+}
+
+// TEST: Component renders without crashing
+if (typeof describe === 'function') {
+  describe('NavigateExperiences component', () => {
+    it('renders without crashing', () => {
+      const React = require('react');
+      const { render } = require('@testing-library/react');
+      const NavigateExperiences = require('./navigate-experiences.js').default;
+      render(React.createElement(NavigateExperiences));
     });
   });
 } 
