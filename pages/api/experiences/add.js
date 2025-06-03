@@ -58,34 +58,4 @@ export default async function handler(req, res) {
     console.error('[API /api/experiences/add] Error:', err, err.stack);
     res.status(500).json({ message: 'Failed to add experience', error: err.message, stack: err.stack });
   }
-}
-
-// TEST: Validation logic
-if (typeof describe === 'function') {
-  describe('validate', () => {
-    it('requires title and content', () => {
-      expect(Object.keys(validate({ title: '', content: '' }))).toContain('title');
-      expect(Object.keys(validate({ title: '', content: '' }))).toContain('content');
-      expect(Object.keys(validate({ title: 'foo', content: '' }))).toContain('content');
-      expect(Object.keys(validate({ title: '', content: 'bar' }))).toContain('title');
-      expect(Object.keys(validate({ title: 'foo', content: 'bar' }))).toHaveLength(0);
-    });
-  });
-}
-
-// TEST: Embedding logic
-if (typeof describe === 'function') {
-  const mockEmbedding = [0.1, 0.2, 0.3];
-  jest.mock('../../../lib/openai', () => ({
-    generateEmbedding: jest.fn().mockResolvedValue(mockEmbedding),
-  }));
-  describe('add experience embedding', () => {
-    it('should call generateEmbedding and update embedding', async () => {
-      const req = { method: 'POST', body: { title: 'Test', content: 'Test content' } };
-      const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
-      await handler(req, res);
-      expect(res.status).toHaveBeenCalledWith(201);
-      expect(res.json.mock.calls[0][0].experience.embedding).toEqual(mockEmbedding);
-    });
-  });
 } 

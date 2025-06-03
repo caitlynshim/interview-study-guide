@@ -32,7 +32,7 @@ Each phase corresponds to a distinct area of the product. We will implement **al
 | 2     | **Answer a Question** flow         | React, API int. | ✔ complete |
 | 3     | **Generate Answer (RAG)** pipeline | API unit/int. | ✔ complete |
 | 4     | **Add Experience** form            | React, API int. | ✔ complete |
-| 5     | **Navigate Experiences** browsing & edit | React, API int. | ☐ pending |
+| 5     | **Navigate Experiences** browsing & edit | React, API int. | ✔ complete |
 | 6     | **Write-in Answer & Evaluation**   | React, API int. | ☐ pending |
 | 7     | **Practice Out Loud** (Speech-to-Text) | API int. | ☐ pending |
 | 8     | **Category Migration Script**      | Node script unit | ☐ pending |
@@ -101,3 +101,85 @@ Below we list concrete test cases per phase. These will be ticked as they are im
 ---
 ### Next Action
 We will now implement **Phase-1 Navigation Bar tests**. 
+
+# Testing Strategy and Plan for Interview Prep App
+
+## Overview
+This document outlines a comprehensive testing strategy for the Next.js interview preparation web application that uses MongoDB Atlas and OpenAI for RAG functionality.
+
+## Test Plan Phases
+
+### ✅ Phase 1: Navigation Bar (COMPLETE)
+**Objective 1:** Test navbar links and navigation between pages
+**Objective 2:** Test responsive behavior and active states
+**Objective 3:** Test navbar component rendering
+- Status: ✅ COMPLETE (3 tests)
+
+### ✅ Phase 2: Answer a Question Flow (COMPLETE)
+**Objective 4:** Test question fetching from database
+**Objective 5:** Test category filtering functionality
+**Objective 6:** Test answer generation via OpenAI integration
+**Objective 7:** Test experience finding and evaluation
+- Status: ✅ COMPLETE (4 tests)
+
+### ✅ Phase 3: RAG Pipeline API Integration (COMPLETE)
+**Objective 8:** Test `/api/questions/categories` endpoint
+**Objective 9:** Test `/api/questions/random` endpoint with category filtering
+**Objective 10:** Test `/api/experiences/generate` endpoint with OpenAI integration
+**Objective 11:** Test `/api/experiences/find-similar` endpoint with vector similarity
+**Objective 12:** Test `/api/experiences/evaluate` endpoint with detailed feedback
+- Status: ✅ COMPLETE (7 tests)
+
+### ✅ Phase 4: Add Experience Form (COMPLETE)
+**Objective 13:** ✅ Test form validation and submission
+**Objective 14:** ✅ Test `/api/experiences/add` endpoint
+**Objective 15:** ✅ Test OpenAI category generation and embedding creation
+- Status: ✅ COMPLETE (15 tests)
+
+### ✅ Phase 5: Navigate Experiences (COMPLETE)
+**Objective 16:** ✅ Test experiences list display and filtering
+**Objective 17:** ✅ Test experience expansion/collapse functionality
+**Objective 18:** ✅ Test inline editing of experiences
+**Objective 19:** ✅ Test `/api/experiences/list` endpoint with category filtering
+**Objective 20:** ✅ Test `/api/experiences/edit` endpoint with validation and embedding updates
+- Status: ✅ COMPLETE (31 tests: 14 React + 17 API)
+
+### 🔄 Phase 6: Write-in Answer & Evaluation (IN PROGRESS)
+**Objective 21:** Test answer input and submission
+**Objective 22:** Test real-time evaluation feedback
+**Objective 23:** Test answer improvement suggestions
+- Status: 🔄 PENDING
+
+### 📋 Phase 7: Practice Out Loud (PENDING)
+**Objective 24:** Test voice recording functionality
+**Objective 25:** Test audio transcription via OpenAI Whisper
+**Objective 26:** Test transcribed answer evaluation
+- Status: 📋 PENDING
+
+### 📋 Phase 8: Category Migration Script (PENDING)
+**Objective 27:** Test database migration for category normalization
+**Objective 28:** Test data integrity after migration
+- Status: 📋 PENDING
+
+### 📋 Phase 9: End-to-End Testing (PENDING)
+**Objective 29:** Test complete user workflows
+**Objective 30:** Test error handling and edge cases
+**Objective 31:** Test performance under load
+- Status: 📋 PENDING
+
+## Current Progress Summary
+
+| Phase | Name | Status | Tests | Completion |
+|-------|------|--------|-------|------------|
+| 1 | Navigation Bar | ✅ | 3 | 100% |
+| 2 | Answer a Question | ✅ | 4 | 100% |
+| 3 | RAG Pipeline API | ✅ | 7 | 100% |
+| 4 | Add Experience | ✅ | 15 | 100% |
+| 5 | Navigate Experiences | ✅ | 31 | 100% |
+| 6 | Write-in Answer | 🔄 | 0 | 0% |
+| 7 | Practice Out Loud | 📋 | 0 | 0% |
+| 8 | Category Migration | 📋 | 0 | 0% |
+| 9 | End-to-End | 📋 | 0 | 0% |
+
+**Total Tests:** 60 tests across 5 completed phases
+**Overall Progress:** 5/9 phases complete (55.6%) 

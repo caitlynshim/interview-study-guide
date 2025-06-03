@@ -364,44 +364,4 @@ export default function AddExperience() {
       `}</style>
     </div>
   );
-}
-
-// TEST: Form validation logic
-if (typeof describe === 'function') {
-  describe('validate', () => {
-    it('requires title and content', () => {
-      expect(Object.keys(validate({ title: '', content: '' }))).toContain('title');
-      expect(Object.keys(validate({ title: '', content: '' }))).toContain('content');
-      expect(Object.keys(validate({ title: 'foo', content: '' }))).toContain('content');
-      expect(Object.keys(validate({ title: '', content: 'bar' }))).toContain('title');
-      expect(Object.keys(validate({ title: 'foo', content: 'bar' }))).toHaveLength(0);
-    });
-  });
-}
-
-// TEST: API call logic (mocked)
-if (typeof describe === 'function') {
-  describe('AddExperience API', () => {
-    it('calls /api/experiences/add with form data', async () => {
-      global.fetch = jest.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve({}) }));
-      // Simulate form submit
-      // ...test logic here (see actual test file for details)...
-      expect(global.fetch).toHaveBeenCalledWith(
-        '/api/experiences/add',
-        expect.objectContaining({ method: 'POST' })
-      );
-    });
-  });
-}
-
-// TEST: Component renders without crashing
-if (typeof describe === 'function') {
-  describe('AddExperience component', () => {
-    it('renders without crashing', () => {
-      const React = require('react');
-      const { render } = require('@testing-library/react');
-      const AddExperience = require('./add-experience.js').default;
-      render(React.createElement(AddExperience));
-    });
-  });
 } 

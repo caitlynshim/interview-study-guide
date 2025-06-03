@@ -518,43 +518,4 @@ export default function NavigateExperiences() {
       `}</style>
     </div>
   );
-}
-
-// TEST: Metadata rendering logic
-if (typeof describe === 'function') {
-  describe('metadata rendering', () => {
-    it('renders tags, category, role, and date if present', () => {
-      const meta = { tags: ['foo', 'bar'], category: 'cat', role: 'lead', date: '2024-06-01T00:00:00Z' };
-      expect(meta.tags.join(', ')).toBe('foo, bar');
-      expect(meta.category).toBe('cat');
-      expect(meta.role).toBe('lead');
-      expect(new Date(meta.date).toLocaleDateString()).toBe(new Date('2024-06-01T00:00:00Z').toLocaleDateString());
-    });
-  });
-}
-
-// TEST: Edit logic
-if (typeof describe === 'function') {
-  describe('edit logic', () => {
-    it('updates experience in UI after edit', () => {
-      const exps = [{ _id: '1', title: 'A', content: 'B', metadata: {} }];
-      const updated = { title: 'C', content: 'D', metadata: { foo: 1 } };
-      const setExperiences = jest.fn();
-      // Simulate edit
-      setExperiences(exps.map(e => e._id === '1' ? { ...e, ...updated } : e));
-      expect(setExperiences).toBeCalled;
-    });
-  });
-}
-
-// TEST: Component renders without crashing
-if (typeof describe === 'function') {
-  describe('NavigateExperiences component', () => {
-    it('renders without crashing', () => {
-      const React = require('react');
-      const { render } = require('@testing-library/react');
-      const NavigateExperiences = require('./navigate-experiences.js').default;
-      render(React.createElement(NavigateExperiences));
-    });
-  });
 } 

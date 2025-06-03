@@ -49,16 +49,4 @@ export default async function handler(req, res) {
     console.error('[API /api/experiences/edit] Error:', err, err.stack);
     return res.status(500).json({ message: 'Failed to update experience', error: err.message, stack: err.stack });
   }
-}
-
-// TEST: Edit handler
-if (typeof describe === 'function') {
-  describe('PUT /api/experiences/edit', () => {
-    it('returns 400 if missing fields', async () => {
-      const req = { method: 'PUT', query: {}, body: {} };
-      const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
-      await handler(req, res);
-      expect(res.status).toHaveBeenCalledWith(400);
-    });
-  });
 } 
