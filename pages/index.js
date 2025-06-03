@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 
 const SPRING = {
@@ -35,6 +35,14 @@ export default function Home() {
   const [evalError, setEvalError] = useState('');
   const [suggestedUpdate, setSuggestedUpdate] = useState(null);
   const [matchedExperience, setMatchedExperience] = useState(null);
+  const [showPractice, setShowPractice] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [audioUrl, setAudioUrl] = useState(null);
+  const [transcript, setTranscript] = useState('');
+  const [transcribeLoading, setTranscribeLoading] = useState(false);
+  const [transcribeError, setTranscribeError] = useState('');
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -110,6 +118,17 @@ export default function Home() {
     }
   };
 
+  const requireQuestion = () => {
+    if (!question || !question.trim()) {
+      setError('Please select or enter a question before proceeding.');
+      setAnswerError('Please select or enter a question before proceeding.');
+      setEvalError('Please select or enter a question before proceeding.');
+      setTranscribeError('Please select or enter a question before proceeding.');
+      return false;
+    }
+    return true;
+  };
+
   return (
     <div className="spring-bg">
       {/* Navigation Bar */}
@@ -178,19 +197,34 @@ export default function Home() {
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem', marginTop: '1rem' }}>
               <button
                 className="spring-generate-btn"
-                onClick={handleGenerateAnswer}
-                disabled={loading || !question}
+                onClick={() => {
+                  if (!requireQuestion()) return;
+                  handleGenerateAnswer();
+                }}
+                disabled={loading}
                 style={{ minWidth: 160 }}
               >
                 Generate Answer
               </button>
               <button
                 className="spring-writein-btn"
-                onClick={() => setShowWriteIn(true)}
-                style={{ minWidth: 160, background: '#e6e9d8', color: '#4a5a23', border: '1px solid #bfc7a1', fontWeight: 500 }}
-                disabled={showWriteIn}
+                onClick={() => {
+                  if (!requireQuestion()) return;
+                  setShowWriteIn(true);
+                }}
+                style={{ minWidth: 160, background: '#e6e9d8', color: '#4a5a23', border: '1px solid #bfc7a1', fontWeight: 600 }}
               >
                 Write-in answer
+              </button>
+              <button
+                className="spring-practice-btn"
+                onClick={() => {
+                  if (!requireQuestion()) return;
+                  setShowPractice(true);
+                }}
+                style={{ minWidth: 160, background: '#f7e6d8', color: '#7b4a23', border: '1px solid #e0bfa1', fontWeight: 600 }}
+              >
+                Practice out loud
               </button>
             </div>
           </div>
@@ -268,6 +302,130 @@ export default function Home() {
                     style={{ background: SPRING.gray, color: '#fff', minWidth: 120 }}
                     onClick={() => { setMatchedExperience(null); setSuggestedUpdate(null); }}
                   >Reject</button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Practice Out Loud Modal/Area */}
+          {showPractice && (
+            <div className="spring-practice-area">
+              {!recording && !audioUrl && (
+                <button onClick={async () => {
+                  setTranscribeError('');
+                  setTranscript('');
+                  setAudioUrl(null);
+                  try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorderRef.current = new window.MediaRecorder(stream);
+                    audioChunksRef.current = [];
+                    mediaRecorderRef.current.ondataavailable = (e) => {
+                      if (e.data.size > 0) audioChunksRef.current.push(e.data);
+                    };
+                    mediaRecorderRef.current.onstop = () => {
+                      const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+                      setAudioUrl(URL.createObjectURL(audioBlob));
+                    };
+                    mediaRecorderRef.current.start();
+                    setRecording(true);
+                  } catch (err) {
+                    setTranscribeError('Microphone access denied or unavailable.');
+                  }
+                }} style={{ background: '#e6e9d8', color: '#4a5a23', fontWeight: 600 }}>Start Recording</button>
+              )}
+              {recording && (
+                <button onClick={() => {
+                  mediaRecorderRef.current.stop();
+                  setRecording(false);
+                }} style={{ background: '#f7e6d8', color: '#7b4a23', fontWeight: 600 }}>Stop Recording</button>
+              )}
+              {audioUrl && !transcript && (
+                <div style={{ marginTop: '1rem' }}>
+                  <audio src={audioUrl} controls />
+                  <button onClick={async () => {
+                    setTranscribeLoading(true);
+                    setTranscribeError('');
+                    setTranscript('');
+                    try {
+                      const audioBlob = await fetch(audioUrl).then(r => r.blob());
+                      if (!audioBlob || audioBlob.size === 0) {
+                        setTranscribeError('Audio file is empty. Please record your answer before submitting.');
+                        setTranscribeLoading(false);
+                        return;
+                      }
+                      const formData = new FormData();
+                      formData.append('audio', audioBlob, 'recording.webm');
+                      const resp = await fetch('/api/experiences/transcribe', { method: 'POST', body: formData });
+                      let data;
+                      try {
+                        data = await resp.json();
+                      } catch (jsonErr) {
+                        setTranscribeError('Transcription error: Invalid JSON response');
+                        return;
+                      }
+                      if (resp.ok) {
+                        setTranscript(data.transcript);
+                      } else {
+                        setTranscribeError(typeof data === 'object' ? data : (data.message || 'Transcription failed'));
+                      }
+                    } catch (err) {
+                      setTranscribeError('Transcription error: ' + err.message);
+                    } finally {
+                      setTranscribeLoading(false);
+                    }
+                  }} disabled={transcribeLoading} style={{ marginLeft: '1rem', background: '#e6e9d8', color: '#4a5a23', fontWeight: 600 }}>Transcribe & Evaluate</button>
+                  {transcribeLoading && <span style={{ marginLeft: 8 }}>Transcribing...</span>}
+                  {transcribeError && (
+                    <div style={{ color: 'red', marginTop: 8 }}>
+                      {typeof transcribeError === 'string' ? (
+                        transcribeError
+                      ) : (
+                        <pre style={{ fontSize: '0.92em', marginTop: 4, background: '#fff0ee', color: '#a33', padding: 8, borderRadius: 6, overflowX: 'auto' }}>
+                          {transcribeError.message && `Message: ${transcribeError.message}\n`}
+                          {transcribeError.error && `Error: ${transcribeError.error}\n`}
+                          {transcribeError.stack && `Stack: ${transcribeError.stack}`}
+                        </pre>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+              {transcript && (
+                <div style={{ marginTop: '1rem' }}>
+                  <div style={{ fontWeight: 600, marginBottom: 4 }}>Transcribed Text:</div>
+                  <textarea value={transcript} readOnly rows={6} style={{ width: '100%', marginBottom: 8 }} />
+                  <button onClick={async () => {
+                    setEvalLoading(true);
+                    setEvalError('');
+                    setEvaluation('');
+                    try {
+                      const resp = await fetch('/api/experiences/evaluate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ question, answer: transcript, mode: 'speech' }),
+                      });
+                      const data = await resp.json();
+                      if (resp.ok) {
+                        setEvaluation(data.evaluation);
+                        setSuggestedUpdate(data.suggestedUpdate || null);
+                        setMatchedExperience(data.matchedExperience || null);
+                        console.log('Evaluation set:', data.evaluation);
+                      } else {
+                        setEvalError(data.message || 'Evaluation failed');
+                      }
+                    } catch (err) {
+                      setEvalError('Evaluation error: ' + err.message);
+                    } finally {
+                      setEvalLoading(false);
+                    }
+                  }} disabled={evalLoading} style={{ background: '#e6e9d8', color: '#4a5a23', fontWeight: 600 }}>Submit for Evaluation</button>
+                  {evalLoading && <span style={{ marginLeft: 8 }}>Evaluating...</span>}
+                  {evalError && <div style={{ color: 'red', marginTop: 8 }}>{evalError}</div>}
+                  {evaluation && (
+                    <div className="spring-answer" style={{ marginTop: 16 }}>
+                      <ReactMarkdown>{evaluation}</ReactMarkdown>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -439,6 +597,15 @@ export default function Home() {
           padding: 0.5rem 1rem;
           margin-top: 0.5rem;
           font-size: 0.99rem;
+        }
+        .spring-practice-area {
+          background: ${SPRING.accent3};
+          border-radius: 10px;
+          padding: 1.1rem 1rem;
+          min-height: 3.2rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
         }
         @media (max-width: 700px) {
           .spring-row-question-input,

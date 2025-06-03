@@ -1,5 +1,5 @@
-import dbConnect from '../../../lib/dbConnect';
-import Experience from '../../../models/Experience';
+const dbConnect = require('../../../lib/dbConnect');
+const Experience = require('../../../models/Experience');
 
 export default async function handler(req, res) {
   let filter;
