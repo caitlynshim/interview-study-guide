@@ -382,7 +382,7 @@ export default function Home() {
           {/* Practice Out Loud Modal/Area */}
           {showPractice && (
             <div className="spring-practice-area">
-              {!recording && !audioUrl && (
+              {!recording && !audioUrl && !transcript && (
                 <button onClick={async () => {
                   setTranscribeError('');
                   setTranscript('');
@@ -438,7 +438,7 @@ export default function Home() {
                       if (resp.ok) {
                         setTranscript(data.transcript);
                       } else {
-                        setTranscribeError(typeof data === 'object' ? data : (data.message || 'Transcription failed'));
+                        setTranscribeError(typeof data === 'object' ? data.message || 'Transcription failed' : data);
                       }
                     } catch (err) {
                       setTranscribeError('Transcription error: ' + err.message);
@@ -453,15 +453,114 @@ export default function Home() {
                       Transcribing<AnimatedEllipsis />
                     </span>
                   )}
+                </div>
+              )}
+              
+              {/* Display transcript and evaluation workflow */}
+              {transcript && (
+                <div style={{ marginTop: '1rem' }}>
+                  <div style={{ marginBottom: '1rem' }}>
+                    <h4 style={{ margin: '0 0 0.5rem 0', color: SPRING.accent }}>Your Transcribed Answer:</h4>
+                    <div style={{ background: '#fff', border: '1px solid #dbe5dd', borderRadius: 8, padding: '1rem', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                      {transcript}
+                    </div>
+                  </div>
+                  
+                  {!evaluation && !evalLoading && (
+                    <button
+                      onClick={async () => {
+                        setEvalError(''); 
+                        setEvaluation(''); 
+                        setEvalLoading(true); 
+                        setSuggestedUpdate(null); 
+                        setMatchedExperience(null);
+                        try {
+                          const resp = await fetch('/api/experiences/evaluate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ question, answer: transcript }),
+                          });
+                          const data = await resp.json();
+                          if (!resp.ok) throw new Error(data.message || 'Failed to evaluate answer');
+                          setEvaluation(data.evaluation);
+                          setSuggestedUpdate(data.suggestedUpdate || null);
+                          setMatchedExperience(data.matchedExperience || null);
+                        } catch (err) {
+                          setEvalError(err.message);
+                        } finally {
+                          setEvalLoading(false);
+                        }
+                      }}
+                      style={{ background: '#bfc7a1', color: '#4a5a23', fontWeight: 600 }}
+                    >
+                      Evaluate
+                    </button>
+                  )}
+                  
                   {evalLoading && (
                     <div style={{ textAlign: 'center', fontWeight: 500, fontSize: '1.1em', margin: '1em 0' }}>
                       Evaluating<AnimatedEllipsis />
                     </div>
                   )}
+                  
                   {evalError && <div style={{ color: 'red', marginTop: 8 }}>{evalError}</div>}
+                  {transcribeError && <div style={{ color: 'red', marginTop: 8 }}>{transcribeError}</div>}
+                  
                   {evaluation && (
-                    <div className="spring-answer" style={{ marginTop: 16 }}>
+                    <div className="spring-eval-box" style={{ marginTop: '1rem' }}>
                       <ReactMarkdown>{evaluation}</ReactMarkdown>
+                      {matchedExperience && suggestedUpdate ? (
+                        <div className="spring-match-prompt" style={{marginTop: '1.5em', background: '#f7f8f3', border: '1px solid #bfc7a1', borderRadius: 8, padding: '1.2em'}}>
+                          <div style={{fontWeight: 600, marginBottom: 8}}>
+                            This answer matches an existing experience:
+                          </div>
+                          {(matchedExperience.content && suggestedUpdate.content) ? (
+                            <div style={{display: 'flex', gap: 24, alignItems: 'flex-start', marginBottom: 8}}>
+                              <div style={{flex: 1}}>
+                                <b>Old Experience</b>
+                                <pre style={{background: '#fff0ee', borderRadius: 4, padding: 8, marginTop: 4, minHeight: 80, whiteSpace: 'pre-wrap', wordBreak: 'break-word'}}>
+                                  {diffLines(matchedExperience.content, suggestedUpdate.content).map((part, i) =>
+                                    <span key={i} style={{background: part.removed ? '#ffeaea' : undefined, color: part.removed ? '#c0392b' : undefined}}>{part.removed ? part.value : null}</span>
+                                  )}
+                                </pre>
+                              </div>
+                              <div style={{flex: 1}}>
+                                <b>Suggested Update</b>
+                                <pre style={{background: '#e7ecd9', borderRadius: 4, padding: 8, marginTop: 4, minHeight: 80, whiteSpace: 'pre-wrap', wordBreak: 'break-word'}}>
+                                  {diffLines(matchedExperience.content, suggestedUpdate.content).map((part, i) =>
+                                    <span key={i} style={{background: part.added ? '#e6ffe6' : undefined, color: part.added ? '#217a3c' : undefined}}>{part.added ? part.value : null}</span>
+                                  )}
+                                </pre>
+                              </div>
+                            </div>
+                          ) : (
+                            <div style={{color: '#c0392b', marginBottom: 8}}>Unable to show diff: missing content.</div>
+                          )}
+                          <div style={{display: 'flex', gap: '1em', marginTop: 12}}>
+                            <button className="spring-btn" style={{background: '#bfc7a1', color: '#4a5a23'}} onClick={() => {
+                              router.push({
+                                pathname: '/navigate-experiences',
+                                query: { editId: matchedExperience._id, suggested: JSON.stringify(suggestedUpdate) },
+                              });
+                            }}>Edit Existing</button>
+                            <button className="spring-btn" style={{background: '#e6e9d8', color: '#4a5a23'}} onClick={() => {
+                              setMatchedExperience(null); setSuggestedUpdate(null); setShowAddExperience(true);
+                            }}>Continue New</button>
+                          </div>
+                        </div>
+                      ) : null}
+                      {!matchedExperience && !suggestedUpdate && (
+                        <div className="spring-no-match-prompt" style={{marginTop: '1.5em', background: '#f7f8f3', border: '1px solid #bfc7a1', borderRadius: 8, padding: '1.2em'}}>
+                          <div style={{fontWeight: 600, marginBottom: 8}}>No similar experience found.</div>
+                          <div style={{marginBottom: 8}}>Would you like to add this as a new experience?</div>
+                          <button className="spring-btn" style={{background: '#bfc7a1', color: '#4a5a23'}} onClick={() => {
+                            router.push({
+                              pathname: '/add-experience',
+                              query: { title: question, content: transcript },
+                            });
+                          }}>Add Experience</button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
