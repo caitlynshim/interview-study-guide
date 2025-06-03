@@ -1,24 +1,81 @@
-The desired end-state is a website that quizes the user on interview questions and can create answers based on a mongodb collection, vector search, and rag.
+# Interview-Prep Web App – Business Requirements Document
 
-The main page should:
-Have a header that allows the user to 
-- Answer a question
-- Add an experience
-- Add a question
+## 1. Vision
+Deliver a modern, self-service web application that helps job-seekers practice behavioural and technical interview questions.  
+The app must provide realistic prompts, personalised answers based on the user's past experiences, and structured feedback that improves both written and spoken responses.
 
-Answer a question page:
-- Allows the user to select a random quesiton from the questions collection. The user can select from the total collection, or narrow down by category
-- Allows the user to enter their own question
--- once there is a question it will deplay it and provide a "generate answer" button.
-- the generate answer button will generate an answer from open ai, using the rag created through mongo's vector search on the expereinces collection
-- the generated answers should be specific to what's in the experiences collection, not general answers. 
-- Answers generated should include details and be in star format.
+---
+## 2. Primary Personas
+• **Candidate** – an experienced professional preparing for senior-level interviews. Uses the site to rehearse answers, capture experiences, and refine storytelling.  
+• **Coach** (future persona) – reviews a candidate's answers and adds questions; not addressed in the current scope but considered for extensibility.
 
-The Add an experience pages should:
-- let the user add an experience to the expereinces collection
-- reindex and embed the question so it can be used in future "generate an answer" uses
+---
+## 3. Navigation & Global Elements
+| Element | Purpose | Success Criteria | Failure / Edge Cases |
+|---------|---------|------------------|----------------------|
+| **Sticky Navbar** (visible on all pages) | Allows users to jump between core tasks. Links: "Answer a question", "Add an experience", "Navigate experiences". | • Current page link is visually highlighted.  
+• Links load target pages in <1 s. | • If navigation fails, an inline error banner "Unable to load page. Please refresh." appears without breaking other links. |
 
-The Add a question page should:
-- Add a question to the questions collection
+---
+## 4. Workflows
+### 4.1  Answer a Question
+| Stage | Expected User Path | Outcome | Failure Handling |
+|-------|--------------------|---------|------------------|
+| 1. Select Prompt | a) Click "Random Question" to fetch one from the question bank.  
+b) OR type/paste a custom question into the input field. | Question text appears in a dedicated card with category (if any). | • If the database returns no questions, show placeholder: "No questions found. Try adding some first."  
+• Empty input disables subsequent actions. |
+| 2. Generate Answer | Click "Generate Answer". | • Animated ellipsis shows progress.  
+• A detailed, markdown answer appears, citing user experiences. | • API/server error displays: "Couldn't generate answer. Details: <error message>" and button is re-enabled. |
+| 3. Review & Improve | Buttons: "Evaluate my answer", "Practice out loud", "Write my own answer". | Appropriate sub-flow opens (see below). | N/A |
 
-Any errors will show the details so the user can understand why it failed.
+#### 4.1.1  Write-In Answer & Evaluation
+| Step | Desired Behaviour | Failure Handling |
+|------|------------------|------------------|
+| Enter answer in textarea → click "Evaluate". | • AI returns constructive scorecard (content depth, STAR completeness, executive tone).  
+• Show modal with feedback and buttons: "Save as new experience", "Propose update to existing". | • If evaluation fails, banner: "Evaluation unavailable, please try later." Answer text is preserved. |
+| System runs similarity check. | • If close match ≥ threshold, diff view (original vs. proposed) shown.  
+• User chooses "Edit existing" → navigates to Navigate Experiences with edit form pre-populated. | • If no similar experience, user lands on Add Experience with fields prefilled. |
+
+#### 4.1.2  Practice Out Loud
+| Step | Desired Behaviour | Failure Handling |
+|------|------------------|------------------|
+| Click microphone icon to start/stop recording. | • Timer shows recording length.  
+• On stop, audio uploads, transcripts, evaluates speech and content. | • Attempt to upload empty file shows toast: "Recording too short. Please try again."  
+• Transcription error returns specific message; evaluation step skipped but transcript still shown. |
+
+### 4.2  Add Experience
+| Purpose | Form Fields | Success | Failure |
+|---------|------------|---------|---------|
+| Capture new STAR experience for future answers. | Title (required), Story (required, multiline), Optional tags. | • "Experience saved!" toast.  
+• Redirect to Navigate Experiences with new card highlighted. | • Validation errors inline (e.g., "Title required").  
+• Server error banner; form retains data. |
+
+### 4.3  Navigate Experiences
+| Interaction | Behaviour | Failure Handling |
+|-------------|-----------|------------------|
+| Experience List | Cards sorted newest-first, colour coded by behavioural theme. | If list empty, placeholder: "No experiences yet." |
+| Filter Bubbles | Clicking bubble shows only matching experiences; "All" resets. | If filter yields none, placeholder: "No matches for this theme." |
+| Expand Card | Show full content, metadata, created/updated dates, "Edit" & "Delete". | N/A |
+| Edit | Opens inline form with prefilled title & story. Diff block appears when editing via suggestion. On save: card collapses, success message shows. | • Save failure keeps form open and shows banner. |
+| Delete | Confirmation dialog: "This can't be undone." On confirm, card disappears. | • Delete failure shows banner; card stays. |
+
+### 4.4  Add Question *(minimal for now)*
+| Action | Result |
+|--------|--------|
+| Add question text & category, click "Save". | Question appears in bank; Random Question can surface it. |
+
+---
+## 5. Non-Functional Experience Goals
+• **Responsiveness** – Mobile, tablet, desktop layouts tested.  
+• **Accessibility** – All controls reachable via keyboard, with aria-labels.  
+• **Feedback** – Every user action surfaces either a success toast or descriptive inline error.  
+• **Undo Safety** – Risky actions (delete) require confirmation; edits preserve data on error.  
+• **Session Continuity** – Returning via deep link (`/navigate-experiences?editId=` etc.) reproduces correct state.
+
+---
+## 6. Glossary
+STAR – Situation, Task, Action, Result storytelling framework.  
+Behavioral Theme – High-level category used in leadership/behavioural interviews.
+
+---
+**Document updated: 2025-06-03** – Reflects all user-facing flows and expected experiences discussed to date.
