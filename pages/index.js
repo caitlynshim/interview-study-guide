@@ -68,6 +68,8 @@ export default function Home() {
   const [addExpLoading, setAddExpLoading] = useState(false);
   const [addExpError, setAddExpError] = useState('');
   const [addExpSuccess, setAddExpSuccess] = useState('');
+  const [starFormatLoading, setStarFormatLoading] = useState(false);
+  const [starFormatError, setStarFormatError] = useState('');
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const router = useRouter();
@@ -159,8 +161,45 @@ export default function Home() {
 
   // Add a resetAll function
   function resetAll() {
-    setAnswer(''); setAnswerError(''); setShowWriteIn(false); setWriteInAnswer(''); setEvaluation(''); setEvalError(''); setEvalLoading(false); setSuggestedUpdate(null); setMatchedExperience(null); setShowPractice(false); setRecording(false); setAudioUrl(null); setTranscript(''); setTranscribeError(''); setTranscribeLoading(false); setShowAddExperience(false); setAddExpFields({ title: '', content: '', tags: '', category: '', role: '', date: '' }); setAddExpError(''); setAddExpSuccess('');
+    setAnswer(''); setAnswerError(''); setShowWriteIn(false); setWriteInAnswer(''); setEvaluation(''); setEvalError(''); setEvalLoading(false); setSuggestedUpdate(null); setMatchedExperience(null); setShowPractice(false); setRecording(false); setAudioUrl(null); setTranscript(''); setTranscribeError(''); setTranscribeLoading(false); setShowAddExperience(false); setAddExpFields({ title: '', content: '', tags: '', category: '', role: '', date: '' }); setAddExpError(''); setAddExpSuccess(''); setStarFormatLoading(false); setStarFormatError('');
   }
+
+  // Handle STAR formatting and redirect to add experience
+  const handleAddExperienceWithStar = async (content) => {
+    setStarFormatLoading(true);
+    setStarFormatError('');
+    
+    try {
+      const response = await fetch('/api/experiences/format-star', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          question: question, 
+          content: content 
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to format experience in STAR format');
+      }
+
+      // Redirect to add-experience with formatted content
+      router.push({
+        pathname: '/add-experience',
+        query: { 
+          title: question, 
+          content: data.formattedContent 
+        },
+      });
+
+    } catch (error) {
+      setStarFormatError('Failed to format experience: ' + error.message);
+    } finally {
+      setStarFormatLoading(false);
+    }
+  };
 
   return (
     <div className="spring-bg">
@@ -366,12 +405,19 @@ export default function Home() {
                     <div className="spring-no-match-prompt" style={{marginTop: '1.5em', background: '#f7f8f3', border: '1px solid #bfc7a1', borderRadius: 8, padding: '1.2em'}}>
                       <div style={{fontWeight: 600, marginBottom: 8}}>No similar experience found.</div>
                       <div style={{marginBottom: 8}}>Would you like to add this as a new experience?</div>
-                      <button className="spring-btn" style={{background: '#bfc7a1', color: '#4a5a23'}} onClick={() => {
-                        router.push({
-                          pathname: '/add-experience',
-                          query: { title: question, content: writeInAnswer },
-                        });
-                      }}>Add Experience</button>
+                      <button 
+                        className="spring-btn" 
+                        style={{background: '#bfc7a1', color: '#4a5a23'}} 
+                        onClick={() => handleAddExperienceWithStar(writeInAnswer)}
+                        disabled={starFormatLoading}
+                      >
+                        {starFormatLoading ? 'Formatting...' : 'Add Experience'}
+                      </button>
+                      {starFormatError && (
+                        <div style={{ color: 'red', marginTop: 8, fontSize: '0.9rem' }}>
+                          {starFormatError}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -553,12 +599,19 @@ export default function Home() {
                         <div className="spring-no-match-prompt" style={{marginTop: '1.5em', background: '#f7f8f3', border: '1px solid #bfc7a1', borderRadius: 8, padding: '1.2em'}}>
                           <div style={{fontWeight: 600, marginBottom: 8}}>No similar experience found.</div>
                           <div style={{marginBottom: 8}}>Would you like to add this as a new experience?</div>
-                          <button className="spring-btn" style={{background: '#bfc7a1', color: '#4a5a23'}} onClick={() => {
-                            router.push({
-                              pathname: '/add-experience',
-                              query: { title: question, content: transcript },
-                            });
-                          }}>Add Experience</button>
+                          <button 
+                            className="spring-btn" 
+                            style={{background: '#bfc7a1', color: '#4a5a23'}} 
+                            onClick={() => handleAddExperienceWithStar(transcript)}
+                            disabled={starFormatLoading}
+                          >
+                            {starFormatLoading ? 'Formatting...' : 'Add Experience'}
+                          </button>
+                          {starFormatError && (
+                            <div style={{ color: 'red', marginTop: 8, fontSize: '0.9rem' }}>
+                              {starFormatError}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -649,8 +702,8 @@ export default function Home() {
           color: ${SPRING.text};
           border: 1.5px solid ${SPRING.accent2};
           border-radius: 20px;
-          padding: 0.45rem 1.2rem;
-          font-size: 1.01rem;
+          padding: 0.3rem 0.9rem;
+          font-size: 0.85rem;
           font-weight: 500;
           cursor: pointer;
           transition: background 0.18s, color 0.18s, border 0.18s;
