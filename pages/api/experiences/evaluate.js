@@ -2,6 +2,48 @@ import dbConnect from '../../../lib/dbConnect';
 import Experience from '../../../models/Experience';
 import { openai } from '../../../lib/openai';
 
+// Helper function to extract rating from evaluation text
+function extractRating(evaluationText) {
+  // Look for various rating patterns
+  const patterns = [
+    /(?:overall\s+)?rating:?\s*(\d+)(?:\/10)?/i,
+    /(\d+)(?:\/10|\s*out\s*of\s*10)/i,
+    /score:?\s*(\d+)/i,
+    /rating\s*of\s*(\d+)/i,
+    /give\s*(?:this|it)\s*(?:a|an)?\s*(\d+)/i,
+    /(\d+)\s*\/\s*10/,
+  ];
+
+  for (const pattern of patterns) {
+    const match = evaluationText.match(pattern);
+    if (match) {
+      const rating = parseInt(match[1]);
+      if (rating >= 1 && rating <= 10) {
+        return rating;
+      }
+    }
+  }
+
+  // If no explicit rating found, try to infer from keywords
+  const text = evaluationText.toLowerCase();
+  if (text.includes('excellent') || text.includes('outstanding') || text.includes('exceptional')) {
+    return 9;
+  } else if (text.includes('very good') || text.includes('strong') || text.includes('well-structured')) {
+    return 8;
+  } else if (text.includes('good') || text.includes('solid') || text.includes('adequate')) {
+    return 7;
+  } else if (text.includes('fair') || text.includes('acceptable') || text.includes('decent')) {
+    return 6;
+  } else if (text.includes('poor') || text.includes('weak') || text.includes('lacking')) {
+    return 4;
+  } else if (text.includes('very poor') || text.includes('inadequate') || text.includes('insufficient')) {
+    return 3;
+  }
+
+  // Default to middle rating if cannot determine
+  return 6;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' });
@@ -16,8 +58,8 @@ export default async function handler(req, res) {
   try {
     await dbConnect();
 
-    // First, evaluate the answer quality
-    const evaluationPrompt = `Please evaluate this interview answer:
+    // First, evaluate the answer quality with explicit rating requirement
+    const evaluationPrompt = `Please evaluate this interview answer and provide a detailed assessment:
 
 Question: ${question}
 
@@ -25,10 +67,18 @@ Answer: ${answer}
 
 Provide constructive feedback on:
 1. Content quality and completeness
-2. Structure and clarity
+2. Structure and clarity  
 3. Specific examples and evidence
 4. Areas for improvement
-5. Overall rating (1-10)
+
+**IMPORTANT: You must end your evaluation with a clear overall rating from 1-10, formatted exactly as "Overall Rating: X/10" where X is the numeric score.**
+
+Use this scale:
+- 9-10: Exceptional answer with compelling examples and perfect structure
+- 7-8: Strong answer with good examples and clear structure
+- 5-6: Adequate answer but lacking detail or structure
+- 3-4: Weak answer with minimal examples or poor structure  
+- 1-2: Poor answer that doesn't address the question
 
 Format your response in markdown with clear sections.`;
 
@@ -39,6 +89,9 @@ Format your response in markdown with clear sections.`;
     });
 
     const evaluation = evaluationResponse.choices[0].message.content;
+    
+    // Extract rating from evaluation
+    const rating = extractRating(evaluation);
 
     // Check for similar experiences using vector search
     let matchedExperience = null;
@@ -115,6 +168,7 @@ Return only the improved experience content, no explanation.`;
 
     res.status(200).json({
       evaluation,
+      rating,
       matchedExperience,
       suggestedUpdate,
     });

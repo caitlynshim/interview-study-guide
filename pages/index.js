@@ -70,6 +70,15 @@ export default function Home() {
   const [addExpSuccess, setAddExpSuccess] = useState('');
   const [starFormatLoading, setStarFormatLoading] = useState(false);
   const [starFormatError, setStarFormatError] = useState('');
+  
+  // New state for practice session tracking
+  const [practiceRating, setPracticeRating] = useState(null);
+  const [showSaveChoice, setShowSaveChoice] = useState(false);
+  const [practiceStartTime, setPracticeStartTime] = useState(null);
+  const [savePracticeLoading, setSavePracticeLoading] = useState(false);
+  const [savePracticeError, setSavePracticeError] = useState('');
+  const [savePracticeSuccess, setSavePracticeSuccess] = useState('');
+  
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const router = useRouter();
@@ -161,8 +170,84 @@ export default function Home() {
 
   // Add a resetAll function
   function resetAll() {
-    setAnswer(''); setAnswerError(''); setShowWriteIn(false); setWriteInAnswer(''); setEvaluation(''); setEvalError(''); setEvalLoading(false); setSuggestedUpdate(null); setMatchedExperience(null); setShowPractice(false); setRecording(false); setAudioUrl(null); setTranscript(''); setTranscribeError(''); setTranscribeLoading(false); setShowAddExperience(false); setAddExpFields({ title: '', content: '', tags: '', category: '', role: '', date: '' }); setAddExpError(''); setAddExpSuccess(''); setStarFormatLoading(false); setStarFormatError('');
+    setAnswer(''); setAnswerError(''); setShowWriteIn(false); setWriteInAnswer(''); setEvaluation(''); setEvalError(''); setEvalLoading(false); setSuggestedUpdate(null); setMatchedExperience(null); setShowPractice(false); setRecording(false); setAudioUrl(null); setTranscript(''); setTranscribeError(''); setTranscribeLoading(false); setShowAddExperience(false); setAddExpFields({ title: '', content: '', tags: '', category: '', role: '', date: '' }); setAddExpError(''); setAddExpSuccess(''); setStarFormatLoading(false); setStarFormatError(''); setPracticeRating(null); setShowSaveChoice(false); setPracticeStartTime(null); setSavePracticeLoading(false); setSavePracticeError(''); setSavePracticeSuccess('');
   }
+
+  // Start practice session timer
+  const startPracticeSession = () => {
+    setPracticeStartTime(Date.now());
+    setSavePracticeError('');
+    setSavePracticeSuccess('');
+  };
+
+  // Save practice session
+  const savePracticeSession = async (practiceType, userAnswer, evaluation, rating) => {
+    setSavePracticeLoading(true);
+    setSavePracticeError('');
+    
+    try {
+      const timeSpent = practiceStartTime ? Math.round((Date.now() - practiceStartTime) / 1000) : 0;
+      
+      const response = await fetch('/api/questions/practice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          questionText: question,
+          category: questionMeta?.category || selectedCategory,
+          rating: rating,
+          practiceType: practiceType,
+          userAnswer: userAnswer,
+          evaluation: evaluation,
+          timeSpent: timeSpent,
+          metadata: {
+            answerLength: userAnswer.length,
+            transcriptionTime: practiceType === 'spoken' ? 2 : 0, // estimate
+            evaluationTime: 3 // estimate
+          }
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to save practice session');
+      }
+
+      setSavePracticeSuccess('Practice session saved successfully!');
+      setTimeout(() => {
+        setShowSaveChoice(false);
+        setSavePracticeSuccess('');
+      }, 2000);
+
+    } catch (error) {
+      setSavePracticeError('Failed to save practice session: ' + error.message);
+    } finally {
+      setSavePracticeLoading(false);
+    }
+  };
+
+  // Extract rating from evaluation text
+  const extractRating = (evaluationText) => {
+    const patterns = [
+      /(?:overall\s+)?rating:?\s*(\d+)(?:\/10)?/i,
+      /(\d+)(?:\/10|\s*out\s*of\s*10)/i,
+      /score:?\s*(\d+)/i,
+      /rating\s*of\s*(\d+)/i,
+      /give\s*(?:this|it)\s*(?:a|an)?\s*(\d+)/i,
+      /(\d+)\s*\/\s*10/,
+    ];
+
+    for (const pattern of patterns) {
+      const match = evaluationText.match(pattern);
+      if (match) {
+        const rating = parseInt(match[1]);
+        if (rating >= 1 && rating <= 10) {
+          return rating;
+        }
+      }
+    }
+    return 6; // default rating
+  };
 
   // Handle STAR formatting and redirect to add experience
   const handleAddExperienceWithStar = async (content) => {
@@ -210,6 +295,7 @@ export default function Home() {
           <a href="/" className="spring-navbar-link active">Answer a question</a>
           <a href="/add-experience" className="spring-navbar-link">Add an experience</a>
           <a href="/navigate-experiences" className="spring-navbar-link">Navigate experiences</a>
+          <a href="/track-progress" className="spring-navbar-link">Track progress</a>
         </div>
       </nav>
       <main className="spring-main-responsive">
@@ -332,6 +418,7 @@ export default function Home() {
                 style={{ minWidth: 180 }}
                 onClick={async () => {
                   setEvalError(''); setEvaluation(''); setEvalLoading(true); setSuggestedUpdate(null); setMatchedExperience(null);
+                  startPracticeSession(); // Start timing the practice session
                   try {
                     const resp = await fetch('/api/experiences/evaluate', {
                       method: 'POST',
@@ -341,8 +428,10 @@ export default function Home() {
                     const data = await resp.json();
                     if (!resp.ok) throw new Error(data.message || 'Failed to evaluate answer');
                     setEvaluation(data.evaluation);
+                    setPracticeRating(data.rating || extractRating(data.evaluation)); // Extract rating
                     setSuggestedUpdate(data.suggestedUpdate || null);
                     setMatchedExperience(data.matchedExperience || null);
+                    setShowSaveChoice(true); // Show save choice after evaluation
                   } catch (err) {
                     setEvalError(err.message);
                   } finally {
@@ -433,6 +522,7 @@ export default function Home() {
                   setTranscribeError('');
                   setTranscript('');
                   setAudioUrl(null);
+                  startPracticeSession(); // Start timing when recording begins
                   try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     mediaRecorderRef.current = new window.MediaRecorder(stream);
@@ -529,8 +619,10 @@ export default function Home() {
                           const data = await resp.json();
                           if (!resp.ok) throw new Error(data.message || 'Failed to evaluate answer');
                           setEvaluation(data.evaluation);
+                          setPracticeRating(data.rating || extractRating(data.evaluation)); // Extract rating
                           setSuggestedUpdate(data.suggestedUpdate || null);
                           setMatchedExperience(data.matchedExperience || null);
+                          setShowSaveChoice(true); // Show save choice after evaluation
                         } catch (err) {
                           setEvalError(err.message);
                         } finally {
@@ -622,6 +714,84 @@ export default function Home() {
           )}
         </div>
       </main>
+      
+      {/* Save/Discard Practice Session Choice */}
+      {showSaveChoice && evaluation && practiceRating && (
+        <div style={{ 
+          position: 'fixed', 
+          bottom: 20, 
+          right: 20, 
+          background: '#fff', 
+          border: '2px solid #bfc7a1', 
+          borderRadius: 12, 
+          padding: '1.5rem', 
+          boxShadow: '0 8px 32px rgba(138,154,91,0.2)',
+          zIndex: 1000,
+          maxWidth: 320
+        }}>
+          <div style={{ fontWeight: 600, marginBottom: 8, color: SPRING.accent }}>
+            Save Practice Session?
+          </div>
+          <div style={{ fontSize: '0.9rem', marginBottom: 8, color: SPRING.text }}>
+            Rating: {practiceRating}/10
+          </div>
+          <div style={{ fontSize: '0.85rem', marginBottom: 12, color: SPRING.gray }}>
+            This will track your progress over time.
+          </div>
+          
+          {savePracticeError && (
+            <div style={{ color: 'red', fontSize: '0.8rem', marginBottom: 8 }}>
+              {savePracticeError}
+            </div>
+          )}
+          
+          {savePracticeSuccess && (
+            <div style={{ color: 'green', fontSize: '0.8rem', marginBottom: 8 }}>
+              {savePracticeSuccess}
+            </div>
+          )}
+          
+          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+            <button 
+              className="spring-btn"
+              style={{ 
+                background: '#e6e9d8', 
+                color: '#4a5a23', 
+                fontSize: '0.85rem',
+                padding: '0.4rem 0.8rem',
+                minWidth: 60
+              }}
+              onClick={() => {
+                setShowSaveChoice(false);
+                setSavePracticeError('');
+                setSavePracticeSuccess('');
+              }}
+              disabled={savePracticeLoading}
+            >
+              Discard
+            </button>
+            <button 
+              className="spring-btn"
+              style={{ 
+                background: '#bfc7a1', 
+                color: '#4a5a23', 
+                fontSize: '0.85rem',
+                padding: '0.4rem 0.8rem',
+                minWidth: 60
+              }}
+              onClick={() => {
+                const practiceType = transcript ? 'spoken' : 'written';
+                const userAnswer = transcript || writeInAnswer;
+                savePracticeSession(practiceType, userAnswer, evaluation, practiceRating);
+              }}
+              disabled={savePracticeLoading}
+            >
+              {savePracticeLoading ? 'Saving...' : 'Save'}
+            </button>
+          </div>
+        </div>
+      )}
+      
       {/* Add a Reset button when answer or evaluation is shown */}
       {(answer || evaluation) && (
         <div style={{ textAlign: 'right', marginTop: 8 }}>

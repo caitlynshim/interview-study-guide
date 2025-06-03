@@ -41,25 +41,6 @@
     "supertest": "^7.1.1",
     "whatwg-fetch": "^3.6.20"
   },
-  "jest": {
-    "transform": {
-      "^.+\\.[jt]sx?$": "babel-jest"
-    },
-    "transformIgnorePatterns": [
-      "/node_modules/(?!react-markdown)/"
-    ],
-    "testEnvironment": "jsdom",
-    "testPathIgnorePatterns": [
-      "/node_modules/",
-      "/.backup/"
-    ],
-    "setupFilesAfterEnv": [
-      "<rootDir>/jest.setup.js"
-    ],
-    "moduleNameMapper": {
-      "\\.(css|less|scss|sass)$": "identity-obj-proxy"
-    }
-  },
   "babel": {
     "presets": [
       "@babel/preset-env"
