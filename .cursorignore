@@ -1,0 +1,41 @@
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Dependencies
+node_modules/
+
+# Build outputs
+.next/
+out/
+build/
+dist/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+.DS_Store
+*.tmp
+*.temp
+
+# Database files
+*.db
+*.sqlite
+
+# IDE files
+.vscode/
+.idea/
+
+# Backup files
+.backup/
+
+# Testing
+coverage/
+
+# Vercel
+.vercel/ 
