@@ -4,12 +4,22 @@ import { createMocks } from 'node-mocks-http';
 import transcribeHandler from '../pages/api/experiences/transcribe';
 import Home from '../pages/index';
 
+// Mock react-markdown before any other imports
+jest.mock('react-markdown', () => {
+  return function MockReactMarkdown({ children }) {
+    return <div data-testid="markdown">{children}</div>;
+  };
+});
+
 // Mock next/router
+const mockRouter = { push: jest.fn() };
 jest.mock('next/router', () => ({
-  useRouter: () => ({ 
-    push: jest.fn(), 
-    query: {} 
-  }),
+  useRouter: () => mockRouter,
+}));
+
+// Mock diff
+jest.mock('diff', () => ({
+  diffLines: jest.fn(() => []),
 }));
 
 // Mock formidable with the same import pattern as the actual handler

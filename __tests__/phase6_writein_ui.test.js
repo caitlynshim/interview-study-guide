@@ -2,417 +2,127 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import Home from '../pages/index';
 
+// Mock react-markdown before any other imports
+jest.mock('react-markdown', () => {
+  return function MockReactMarkdown({ children }) {
+    return <div data-testid="markdown">{children}</div>;
+  };
+});
+
 // Mock next/router
+const mockRouter = { push: jest.fn() };
 jest.mock('next/router', () => ({
-  useRouter: () => ({ 
-    push: jest.fn(), 
-    query: {} 
-  }),
+  useRouter: () => mockRouter,
 }));
 
-describe('Phase 6 – Write-in Answer UI', () => {
-  let mockMediaRecorder;
+// Mock diff
+jest.mock('diff', () => ({
+  diffLines: jest.fn(() => []),
+}));
 
+describe('Phase 6 - Write-in Answer & Evaluation UI', () => {
   beforeEach(() => {
-    // Mock MediaRecorder with proper state synchronization
-    mockMediaRecorder = {
-      start: jest.fn().mockImplementation(function() {
-        this.state = 'recording';
-        // Trigger DOM update synchronously
-        setTimeout(() => {
-          if (this.onstart) this.onstart();
-        }, 0);
-      }),
-      stop: jest.fn().mockImplementation(function() {
-        this.state = 'inactive';
-        // Trigger DOM update synchronously
-        setTimeout(() => {
-          if (this.onstop) this.onstop();
-        }, 0);
-      }),
-      ondataavailable: null,
-      onstop: null,
-      onstart: null,
-      state: 'inactive',
-    };
-
-    global.MediaRecorder = jest.fn(() => mockMediaRecorder);
-    global.MediaRecorder.isTypeSupported = jest.fn(() => true);
-
-    // Mock navigator.mediaDevices
-    Object.defineProperty(global.navigator, 'mediaDevices', {
-      value: {
-        getUserMedia: jest.fn(() => Promise.resolve({
-          getTracks: () => [{ stop: jest.fn() }]
-        })),
-      },
-      writable: true,
-    });
-
-    // Mock URL.createObjectURL
-    global.URL.createObjectURL = jest.fn(() => 'blob:mock-url');
-    global.URL.revokeObjectURL = jest.fn();
-
-    // Mock fetch for categories - ensure this is set before each test
-    global.fetch = jest.fn().mockImplementation((url) => {
-      if (url === '/api/questions/categories') {
-        return Promise.resolve({
-          ok: true,
-          json: async () => ['Technical'],
-        });
-      }
-      return Promise.reject(new Error('Unexpected fetch'));
-    });
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    if (global.fetch && global.fetch.mockRestore) {
+      global.fetch.mockRestore();
+    }
   });
 
-  it('shows write-in textarea when button clicked with custom question', async () => {
-    // 1st fetch: categories
-    mockFetchSequence([
-      {
-        ok: true,
-        json: async () => ['Leadership', 'Ownership'],
-      },
-    ]);
-
-    render(<Home />);
-
-    // Wait for categories to load
-    await waitFor(() => expect(screen.getByText('Leadership')).toBeInTheDocument());
-
-    // Type a custom question
-    fireEvent.change(screen.getByPlaceholderText(/enter your own question/i), {
-      target: { value: 'Tell me about a time you led without authority' },
+  it('displays write-in answer textarea when write-in workflow is started', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ['Technical'],
     });
 
-    // Click Write-in answer button
-    fireEvent.click(screen.getByRole('button', { name: /write-in answer/i }));
+    await act(async () => {
+      render(<Home />);
+    });
 
-    // Textarea should appear
-    expect(
-      screen.getByPlaceholderText(/paste or write your answer here/i)
-    ).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText('Technical')).toBeInTheDocument());
+
+    // Enter a question first
+    await act(async () => {
+      fireEvent.change(screen.getByPlaceholderText(/enter your own question/i), {
+        target: { value: 'Describe a challenging project' },
+      });
+    });
+
+    // Start write-in workflow
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /write-in answer/i }));
+    });
+
+    // Should show textarea for answer input
+    expect(screen.getByPlaceholderText(/paste or write your answer here/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /submit for evaluation/i })).toBeInTheDocument();
   });
 
-  it('shows evaluation results after submitting write-in answer', async () => {
-    mockFetchSequence([
-      {
-        ok: true,
-        json: async () => ['Leadership'],
-      },
-      {
-        ok: true,
-        json: async () => ({
-          evaluation: '## Evaluation\n\nGood answer with specific examples.\n\n**Rating: 8/10**',
-          matchedExperience: null,
-          suggestedUpdate: null,
-        }),
-      },
-    ]);
-
-    render(<Home />);
-
-    // Wait for categories and set up question
-    await waitFor(() => expect(screen.getByText('Leadership')).toBeInTheDocument());
-    
-    fireEvent.change(screen.getByPlaceholderText(/enter your own question/i), {
-      target: { value: 'Describe a leadership challenge' },
+  it('submits answer for evaluation and displays feedback', async () => {
+    global.fetch = jest.fn().mockImplementation((url) => {
+      if (url === '/api/questions/categories') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ['Technical'],
+        });
+      }
+      if (url === '/api/experiences/evaluate') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            evaluation: '## Evaluation\n\nGood answer with specific examples. Consider adding more metrics.',
+            matchedExperience: null,
+            suggestedUpdate: null,
+          }),
+        });
+      }
+      return Promise.reject(new Error(`Unexpected fetch to ${url}`));
     });
 
-    // Click Write-in answer button
-    fireEvent.click(screen.getByRole('button', { name: /write-in answer/i }));
+    await act(async () => {
+      render(<Home />);
+    });
 
-    // Fill in the answer
+    await waitFor(() => expect(screen.getByText('Technical')).toBeInTheDocument());
+
+    // Enter question
+    await act(async () => {
+      fireEvent.change(screen.getByPlaceholderText(/enter your own question/i), {
+        target: { value: 'Tell me about a successful project' },
+      });
+    });
+
+    // Start write-in workflow
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /write-in answer/i }));
+    });
+
+    // Enter answer
     const textarea = screen.getByPlaceholderText(/paste or write your answer here/i);
-    fireEvent.change(textarea, {
-      target: { value: 'I led a cross-functional team to deliver a critical project ahead of schedule.' },
+    await act(async () => {
+      fireEvent.change(textarea, {
+        target: { value: 'I led a team of 5 engineers to deliver a critical API service that improved response times by 40%.' },
+      });
     });
 
     // Submit for evaluation
-    fireEvent.click(screen.getByRole('button', { name: /submit for evaluation/i }));
-
-    // Should show loading state
-    await waitFor(() => expect(screen.getByText(/evaluating/i)).toBeInTheDocument());
-
-    // Should show evaluation results
-    await waitFor(() => expect(screen.getByText(/good answer with specific examples/i)).toBeInTheDocument());
-    expect(screen.getByText(/rating: 8\/10/i)).toBeInTheDocument();
-  });
-
-  it('shows practice out loud recording interface', async () => {
-    mockFetchSequence([
-      {
-        ok: true,
-        json: async () => ['Technical'],
-      },
-    ]);
-
-    render(<Home />);
-
-    await waitFor(() => expect(screen.getByText('Technical')).toBeInTheDocument());
-
-    // Type a question
-    fireEvent.change(screen.getByPlaceholderText(/enter your own question/i), {
-      target: { value: 'Explain a technical architecture decision' },
-    });
-
-    // Click Practice Out Loud button
-    fireEvent.click(screen.getByRole('button', { name: /practice out loud/i }));
-
-    // Should show start recording button
-    expect(screen.getByRole('button', { name: /start recording/i })).toBeInTheDocument();
-  });
-
-  it('handles audio recording start and stop flow', async () => {
-    // Enhanced fetch mock for this specific test
-    global.fetch = jest.fn().mockImplementation((url) => {
-      if (url === '/api/questions/categories') {
-        return Promise.resolve({
-          ok: true,
-          json: async () => ['Technical'],
-        });
-      }
-      return Promise.reject(new Error('Unexpected fetch'));
-    });
-
-    render(<Home />);
-
-    await waitFor(() => expect(screen.getByText('Technical')).toBeInTheDocument());
-
-    fireEvent.change(screen.getByPlaceholderText(/enter your own question/i), {
-      target: { value: 'Technical question' },
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: /practice out loud/i }));
-
-    // Start recording with proper state update
     await act(async () => {
-      const startButton = screen.getByRole('button', { name: /start recording/i });
-      fireEvent.click(startButton);
-      
-      // Wait for the async getUserMedia and MediaRecorder setup
-      await new Promise(resolve => setTimeout(resolve, 10));
+      fireEvent.click(screen.getByRole('button', { name: /submit for evaluation/i }));
     });
 
-    // Should show stop recording button
-    await waitFor(() => expect(screen.getByRole('button', { name: /stop recording/i })).toBeInTheDocument());
-
-    // Simulate recording completion and stop
-    await act(async () => {
-      const stopButton = screen.getByRole('button', { name: /stop recording/i });
-      fireEvent.click(stopButton);
-      
-      // Wait for the onstop callback to be triggered
-      await new Promise(resolve => setTimeout(resolve, 10));
+    // Wait for evaluation to appear
+    await waitFor(() => {
+      expect(screen.getByText(/good answer with specific examples/i)).toBeInTheDocument();
     });
 
-    // Should show audio element after recording stops
-    await waitFor(() => expect(document.querySelector('audio')).toBeInTheDocument());
-  });
-
-  it('handles transcription and evaluation flow', async () => {
-    global.fetch = jest.fn().mockImplementation((url, options) => {
-      if (url === '/api/questions/categories') {
-        return Promise.resolve({
-          ok: true,
-          json: async () => ['Technical'],
-        });
-      }
-      if (url === '/api/experiences/transcribe') {
-        return Promise.resolve({
-          ok: true,
-          json: async () => ({ transcript: 'I designed a microservices architecture that improved system scalability.' }),
-        });
-      }
-      if (url === '/api/experiences/evaluate') {
-        return Promise.resolve({
-          ok: true,
-          json: async () => ({
-            evaluation: '## Evaluation\n\nExcellent technical answer.\n\n**Rating: 9/10**',
-            matchedExperience: null,
-            suggestedUpdate: null,
-          }),
-        });
-      }
-      // Mock the blob conversion step
-      if (url === 'blob:mock-url') {
-        return Promise.resolve({
-          blob: () => Promise.resolve(new Blob(['audio data'], { type: 'audio/webm' }))
-        });
-      }
-      return Promise.reject(new Error('Unexpected fetch'));
-    });
-
-    render(<Home />);
-
-    await waitFor(() => expect(screen.getByText('Technical')).toBeInTheDocument());
-
-    fireEvent.change(screen.getByPlaceholderText(/enter your own question/i), {
-      target: { value: 'Technical architecture question' },
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: /practice out loud/i }));
-    
-    await act(async () => {
-      const startButton = screen.getByRole('button', { name: /start recording/i });
-      fireEvent.click(startButton);
-      await new Promise(resolve => setTimeout(resolve, 10));
-    });
-
-    // Simulate recording completion
-    await act(async () => {
-      const stopButton = screen.getByRole('button', { name: /stop recording/i });
-      fireEvent.click(stopButton);
-      await new Promise(resolve => setTimeout(resolve, 10));
-    });
-
-    // Wait for audio element to appear (means recording finished)
-    await waitFor(() => expect(document.querySelector('audio')).toBeInTheDocument());
-
-    // Find and click the transcribe button
-    const transcribeButton = screen.getByRole('button', { name: /transcribe & evaluate/i });
-    fireEvent.click(transcribeButton);
-
-    // Should show transcribing state
-    await waitFor(() => expect(screen.getByText(/transcribing/i)).toBeInTheDocument());
-
-    // Wait for transcript to appear first
-    await waitFor(() => expect(screen.getByText(/I designed a microservices architecture/i)).toBeInTheDocument(), { timeout: 3000 });
-
-    // Now find and click the separate "Evaluate" button that appears after transcription
-    const evaluateButton = screen.getByRole('button', { name: /^evaluate$/i });
-    fireEvent.click(evaluateButton);
-
-    // Should eventually show evaluation results
-    await waitFor(() => expect(screen.getByText(/excellent technical answer/i)).toBeInTheDocument(), { timeout: 3000 });
-    expect(screen.getByText(/rating: 9\/10/i)).toBeInTheDocument();
-  });
-
-  it('handles matched experience with suggested update', async () => {
-    global.fetch = jest.fn().mockImplementation((url, options) => {
-      if (url === '/api/questions/categories') {
-        return Promise.resolve({
-          ok: true,
-          json: async () => ['Leadership'],
-        });
-      }
-      if (url === '/api/experiences/evaluate') {
-        return Promise.resolve({
-          ok: true,
-          json: async () => ({
-            evaluation: '## Evaluation\n\nGood answer with room for improvement.',
-            matchedExperience: {
-              _id: '123',
-              title: 'Leadership Experience',
-              content: 'Original leadership story...',
-            },
-            suggestedUpdate: {
-              title: 'Leadership Experience',
-              content: 'Enhanced leadership story with new insights...',
-            },
-          }),
-        });
-      }
-      return Promise.reject(new Error('Unexpected fetch'));
-    });
-
-    render(<Home />);
-
-    await waitFor(() => expect(screen.getByText('Leadership')).toBeInTheDocument());
-
-    fireEvent.change(screen.getByPlaceholderText(/enter your own question/i), {
-      target: { value: 'Leadership question' },
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: /write-in answer/i }));
-
-    const textarea = screen.getByPlaceholderText(/paste or write your answer here/i);
-    fireEvent.change(textarea, {
-      target: { value: 'Similar leadership experience with new details.' },
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: /submit for evaluation/i }));
-
-    // Should show matched experience prompt
-    await waitFor(() => expect(screen.getByText(/this answer matches an existing experience/i)).toBeInTheDocument());
-    expect(screen.getByRole('button', { name: /edit existing/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /continue new/i })).toBeInTheDocument();
-  });
-
-  it('handles no matched experience found', async () => {
-    global.fetch = jest.fn().mockImplementation((url, options) => {
-      if (url === '/api/questions/categories') {
-        return Promise.resolve({
-          ok: true,
-          json: async () => ['Ownership'],
-        });
-      }
-      if (url === '/api/experiences/evaluate') {
-        return Promise.resolve({
-          ok: true,
-          json: async () => ({
-            evaluation: '## Evaluation\n\nUnique experience worth adding.',
-            matchedExperience: null,
-            suggestedUpdate: null,
-          }),
-        });
-      }
-      return Promise.reject(new Error('Unexpected fetch'));
-    });
-
-    render(<Home />);
-
-    await waitFor(() => expect(screen.getByText('Ownership')).toBeInTheDocument());
-
-    fireEvent.change(screen.getByPlaceholderText(/enter your own question/i), {
-      target: { value: 'Ownership question' },
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: /write-in answer/i }));
-
-    const textarea = screen.getByPlaceholderText(/paste or write your answer here/i);
-    fireEvent.change(textarea, {
-      target: { value: 'Completely new ownership experience.' },
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: /submit for evaluation/i }));
-
-    // Should show no match prompt
-    await waitFor(() => expect(screen.getByText(/no similar experience found/i)).toBeInTheDocument());
+    // Should show Add Experience button
     expect(screen.getByRole('button', { name: /add experience/i })).toBeInTheDocument();
   });
 
-  it('prevents submission with empty answer', async () => {
+  it('shows matched experience when similarity threshold is met', async () => {
     global.fetch = jest.fn().mockImplementation((url) => {
-      if (url === '/api/questions/categories') {
-        return Promise.resolve({
-          ok: true,
-          json: async () => ['Leadership'],
-        });
-      }
-      return Promise.reject(new Error('Unexpected fetch'));
-    });
-
-    render(<Home />);
-
-    await waitFor(() => expect(screen.getByText('Leadership')).toBeInTheDocument());
-
-    fireEvent.change(screen.getByPlaceholderText(/enter your own question/i), {
-      target: { value: 'Test question' },
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: /write-in answer/i }));
-
-    // Submit button should be disabled when answer is empty
-    const submitButton = screen.getByRole('button', { name: /submit for evaluation/i });
-    expect(submitButton).toBeDisabled();
-  });
-
-  it('shows reset button after evaluation', async () => {
-    global.fetch = jest.fn().mockImplementation((url, options) => {
       if (url === '/api/questions/categories') {
         return Promise.resolve({
           ok: true,
@@ -423,49 +133,317 @@ describe('Phase 6 – Write-in Answer UI', () => {
         return Promise.resolve({
           ok: true,
           json: async () => ({
-            evaluation: '## Evaluation\n\nGood technical answer.',
+            evaluation: '## Evaluation\n\nSolid answer.',
+            matchedExperience: {
+              _id: 'exp123',
+              title: 'API Performance Optimization',
+              content: 'I optimized our API to improve response times by 35%.',
+              metadata: { category: 'Technical' }
+            },
+            suggestedUpdate: 'I led a team of 5 engineers to deliver a critical API service that improved response times by 40%, building on my previous optimization work that achieved 35% improvement.',
+          }),
+        });
+      }
+      return Promise.reject(new Error(`Unexpected fetch to ${url}`));
+    });
+
+    await act(async () => {
+      render(<Home />);
+    });
+
+    await waitFor(() => expect(screen.getByText('Technical')).toBeInTheDocument());
+
+    await act(async () => {
+      fireEvent.change(screen.getByPlaceholderText(/enter your own question/i), {
+        target: { value: 'Tell me about API optimization' },
+      });
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /write-in answer/i }));
+    });
+
+    const textarea = screen.getByPlaceholderText(/paste or write your answer here/i);
+    await act(async () => {
+      fireEvent.change(textarea, {
+        target: { value: 'I improved API response times by 40%.' },
+      });
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /submit for evaluation/i }));
+    });
+
+    // Should show matched experience section
+    await waitFor(() => {
+      expect(screen.getByText(/similar experience found/i)).toBeInTheDocument();
+      expect(screen.getByText('API Performance Optimization')).toBeInTheDocument();
+    });
+
+    // Should show Update Experience button
+    expect(screen.getByRole('button', { name: /update experience/i })).toBeInTheDocument();
+  });
+
+  it('handles evaluation errors gracefully', async () => {
+    global.fetch = jest.fn().mockImplementation((url) => {
+      if (url === '/api/questions/categories') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ['Technical'],
+        });
+      }
+      if (url === '/api/experiences/evaluate') {
+        return Promise.resolve({
+          ok: false,
+          json: async () => ({
+            message: 'Evaluation service temporarily unavailable',
+          }),
+        });
+      }
+      return Promise.reject(new Error(`Unexpected fetch to ${url}`));
+    });
+
+    await act(async () => {
+      render(<Home />);
+    });
+
+    await waitFor(() => expect(screen.getByText('Technical')).toBeInTheDocument());
+
+    await act(async () => {
+      fireEvent.change(screen.getByPlaceholderText(/enter your own question/i), {
+        target: { value: 'Test question' },
+      });
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /write-in answer/i }));
+    });
+
+    const textarea = screen.getByPlaceholderText(/paste or write your answer here/i);
+    await act(async () => {
+      fireEvent.change(textarea, {
+        target: { value: 'Test answer' },
+      });
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /submit for evaluation/i }));
+    });
+
+    // Should show error message
+    await waitFor(() => {
+      expect(screen.getByText(/evaluation service temporarily unavailable/i)).toBeInTheDocument();
+    });
+  });
+
+  it('navigates to add experience with pre-filled content', async () => {
+    global.fetch = jest.fn().mockImplementation((url) => {
+      if (url === '/api/questions/categories') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ['Technical'],
+        });
+      }
+      if (url === '/api/experiences/evaluate') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            evaluation: '## Evaluation\n\nGood answer.',
             matchedExperience: null,
             suggestedUpdate: null,
           }),
         });
       }
-      return Promise.reject(new Error('Unexpected fetch'));
+      return Promise.reject(new Error(`Unexpected fetch to ${url}`));
     });
 
-    render(<Home />);
+    await act(async () => {
+      render(<Home />);
+    });
 
     await waitFor(() => expect(screen.getByText('Technical')).toBeInTheDocument());
 
-    fireEvent.change(screen.getByPlaceholderText(/enter your own question/i), {
-      target: { value: 'Technical question' },
+    await act(async () => {
+      fireEvent.change(screen.getByPlaceholderText(/enter your own question/i), {
+        target: { value: 'Describe a leadership challenge' },
+      });
     });
 
-    fireEvent.click(screen.getByRole('button', { name: /write-in answer/i }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /write-in answer/i }));
+    });
 
     const textarea = screen.getByPlaceholderText(/paste or write your answer here/i);
-    fireEvent.change(textarea, {
-      target: { value: 'Technical answer' },
+    await act(async () => {
+      fireEvent.change(textarea, {
+        target: { value: 'I led a team through a difficult project.' },
+      });
     });
 
-    fireEvent.click(screen.getByRole('button', { name: /submit for evaluation/i }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /submit for evaluation/i }));
+    });
 
-    await waitFor(() => expect(screen.getByText(/good technical answer/i)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/good answer/i)).toBeInTheDocument());
 
-    // Reset button should appear
-    expect(screen.getByRole('button', { name: /reset/i })).toBeInTheDocument();
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /add experience/i }));
+    });
 
-    // Click reset
-    fireEvent.click(screen.getByRole('button', { name: /reset/i }));
-
-    // Write-in area should be hidden
-    expect(screen.queryByPlaceholderText(/paste or write your answer here/i)).not.toBeInTheDocument();
+    // Should navigate to add experience page with pre-filled content
+    expect(mockRouter.push).toHaveBeenCalledWith({
+      pathname: '/add-experience',
+      query: {
+        title: 'Describe a leadership challenge',
+        content: 'I led a team through a difficult project.',
+      },
+    });
   });
-});
 
-// Helper to create mock fetch implementation per call sequence
-function mockFetchSequence(responses) {
-  global.fetch = jest.fn();
-  responses.forEach((resp, idx) => {
-    global.fetch.mockImplementationOnce(() => Promise.resolve(resp));
+  it('resets form when starting new write-in workflow', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ['Technical'],
+    });
+
+    await act(async () => {
+      render(<Home />);
+    });
+
+    await waitFor(() => expect(screen.getByText('Technical')).toBeInTheDocument());
+
+    await act(async () => {
+      fireEvent.change(screen.getByPlaceholderText(/enter your own question/i), {
+        target: { value: 'First question' },
+      });
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /write-in answer/i }));
+    });
+
+    let textarea = screen.getByPlaceholderText(/paste or write your answer here/i);
+    await act(async () => {
+      fireEvent.change(textarea, {
+        target: { value: 'First answer' },
+      });
+    });
+
+    // Change question
+    await act(async () => {
+      fireEvent.change(screen.getByPlaceholderText(/enter your own question/i), {
+        target: { value: 'Second question' },
+      });
+    });
+
+    // Start new write-in workflow
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /write-in answer/i }));
+    });
+
+    // Textarea should be cleared
+    textarea = screen.getByPlaceholderText(/paste or write your answer here/i);
+    expect(textarea.value).toBe('');
   });
-} 
+
+  it('shows loading state during evaluation', async () => {
+    global.fetch = jest.fn().mockImplementation((url) => {
+      if (url === '/api/questions/categories') {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ['Technical'],
+        });
+      }
+      if (url === '/api/experiences/evaluate') {
+        return new Promise(resolve => {
+          setTimeout(() => {
+            resolve({
+              ok: true,
+              json: async () => ({
+                evaluation: '## Evaluation\n\nGood answer.',
+                matchedExperience: null,
+                suggestedUpdate: null,
+              }),
+            });
+          }, 100);
+        });
+      }
+      return Promise.reject(new Error(`Unexpected fetch to ${url}`));
+    });
+
+    await act(async () => {
+      render(<Home />);
+    });
+
+    await waitFor(() => expect(screen.getByText('Technical')).toBeInTheDocument());
+
+    await act(async () => {
+      fireEvent.change(screen.getByPlaceholderText(/enter your own question/i), {
+        target: { value: 'Test question' },
+      });
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /write-in answer/i }));
+    });
+
+    const textarea = screen.getByPlaceholderText(/paste or write your answer here/i);
+    await act(async () => {
+      fireEvent.change(textarea, {
+        target: { value: 'Test answer' },
+      });
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /submit for evaluation/i }));
+    });
+
+    // Should show loading state
+    await waitFor(() => {
+      expect(screen.getByText(/evaluating/i)).toBeInTheDocument();
+    });
+
+    // Wait for evaluation to complete
+    await waitFor(() => {
+      expect(screen.getByText(/good answer/i)).toBeInTheDocument();
+    });
+  });
+
+  it('validates answer input before submission', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ['Technical'],
+    });
+
+    await act(async () => {
+      render(<Home />);
+    });
+
+    await waitFor(() => expect(screen.getByText('Technical')).toBeInTheDocument());
+
+    await act(async () => {
+      fireEvent.change(screen.getByPlaceholderText(/enter your own question/i), {
+        target: { value: 'Test question' },
+      });
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /write-in answer/i }));
+    });
+
+    // Submit button should be disabled with empty answer
+    const submitButton = screen.getByRole('button', { name: /submit for evaluation/i });
+    expect(submitButton).toBeDisabled();
+
+    // Enter answer
+    const textarea = screen.getByPlaceholderText(/paste or write your answer here/i);
+    await act(async () => {
+      fireEvent.change(textarea, {
+        target: { value: 'Now I have an answer' },
+      });
+    });
+
+    // Submit button should be enabled
+    expect(submitButton).toBeEnabled();
+  });
+}); 

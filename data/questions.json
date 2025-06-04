@@ -1,1 +1,496 @@
-[]
+{
+  "exportedAt": "2025-06-04T08:32:28.422Z",
+  "totalCount": 70,
+  "questions": [
+    {
+      "_id": "68391ebb56d8135a663284da",
+      "question": "Metrics looked fine but you changed course to protect customers—walk me through it.",
+      "category": "Andrew Certain / Executive Bar-Raiser",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.418Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284db",
+      "question": "Describe a decision that hurt your OKRs short term—why was it still right?",
+      "category": "Andrew Certain / Executive Bar-Raiser",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.419Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284e2",
+      "question": "Biggest miss in past three years—root cause and mechanism installed?",
+      "category": "Andrew Certain / Executive Bar-Raiser",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.419Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284e3",
+      "question": "A time you simplified Amazon-scale complexity into a doc read by SVPs—key headings?",
+      "category": "Andrew Certain / Executive Bar-Raiser",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.419Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284e0",
+      "question": "Give a deep Dive-Deep example—how did you uncover a latent scalability bottleneck?",
+      "category": "Andrew Certain / Executive Bar-Raiser",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.419Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284de",
+      "question": "Worst senior hire—how did you decide to exit and what did you learn?",
+      "category": "Andrew Certain / Executive Bar-Raiser",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.419Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284e1",
+      "question": "What 10× Think Big vision did you champion that customers never requested?",
+      "category": "Andrew Certain / Executive Bar-Raiser",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.419Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284df",
+      "question": "Describe your latest disagree & commit moment—what did you do post-decision?",
+      "category": "Andrew Certain / Executive Bar-Raiser",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.419Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284dd",
+      "question": "Boldest call made with less than 50 % data—how did you bound risk?",
+      "category": "Andrew Certain / Executive Bar-Raiser",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.419Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284dc",
+      "question": "Walk me through a platform simplification that unlocked 10× future speed—diagram before/after.",
+      "category": "Andrew Certain / Executive Bar-Raiser",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.419Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284c1",
+      "question": "Explain a time customers asked for X and you delivered something bolder (and better).",
+      "category": "Customer & Field Focus",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.419Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284bc",
+      "question": "Tell me about a time field feedback changed your roadmap.",
+      "category": "Customer & Field Focus",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.419Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284bd",
+      "question": "Describe your toughest customer escalation and how you turned it around.",
+      "category": "Customer & Field Focus",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.419Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284be",
+      "question": "Give an example of using customer verbatims to influence internal teams.",
+      "category": "Customer & Field Focus",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284c3",
+      "question": "How do you balance high-touch strategic accounts versus broad self-service?",
+      "category": "Customer & Field Focus",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284bf",
+      "question": "When did you exceed customer expectations proactively?",
+      "category": "Customer & Field Focus",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284c0",
+      "question": "How do you keep the voice of the customer loud as teams grow?",
+      "category": "Customer & Field Focus",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284c2",
+      "question": "Describe a time you negotiated a contract or renewal on the brink of failure.",
+      "category": "Customer & Field Focus",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a6632849f",
+      "question": "Tell me about your worst senior hire—what signals did you miss and how did you exit them?",
+      "category": "Leadership & People",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284a0",
+      "question": "Describe a time you coached a struggling leader to success.",
+      "category": "Leadership & People",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284a1",
+      "question": "Describe a time you invested in coaching but ultimately removed a leader.",
+      "category": "Leadership & People",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284a2",
+      "question": "When did you inherit a low-morale team and how did you turn them around?",
+      "category": "Leadership & People",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284a5",
+      "question": "How have you ensured diversity and inclusion while scaling global teams?",
+      "category": "Leadership & People",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284a6",
+      "question": "Tell me about a time you protected your team from churn or thrash coming from above.",
+      "category": "Leadership & People",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284a7",
+      "question": "Describe a time you had to fire a high performer for values reasons.",
+      "category": "Leadership & People",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284a4",
+      "question": "Give an example of a time you delegated a mission-critical project and how you stayed looped in.",
+      "category": "Leadership & People",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284a3",
+      "question": "Tell me about a culture-change initiative you led—what changed measurably?",
+      "category": "Leadership & People",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a6632849e",
+      "question": "Tell me about a time you hired someone who scaled beyond expectations.",
+      "category": "Leadership & People",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284d4",
+      "question": "Walk me through your approach to forecasting cost & capacity for new services.",
+      "category": "Metrics, Data & Decision Quality",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284d2",
+      "question": "How do you build leading indicators for product health?",
+      "category": "Metrics, Data & Decision Quality",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284d1",
+      "question": "Tell me about a time you over-rotated on a metric and course-corrected.",
+      "category": "Metrics, Data & Decision Quality",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284d3",
+      "question": "Explain a mechanism you built to catch anomalies early.",
+      "category": "Metrics, Data & Decision Quality",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284d0",
+      "question": "Describe a decision where data said one thing, intuition another—what did you do?",
+      "category": "Metrics, Data & Decision Quality",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284d9",
+      "question": "What’s your plan to align identity, billing, and governance into one plane?",
+      "category": "MongoDB-Specific (Billing, Identity, Atlas)",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284d5",
+      "question": "How would you improve Atlas cost-management in the next 12 months?",
+      "category": "MongoDB-Specific (Billing, Identity, Atlas)",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284d6",
+      "question": "What governance features should remain free vs. paid? Defend your line.",
+      "category": "MongoDB-Specific (Billing, Identity, Atlas)",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284d8",
+      "question": "Pitch a strategy to bundle add-on services without harming pay-as-you-go ethos.",
+      "category": "MongoDB-Specific (Billing, Identity, Atlas)",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284d7",
+      "question": "Design a multi-org spend dashboard for a global enterprise.",
+      "category": "MongoDB-Specific (Billing, Identity, Atlas)",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284cb",
+      "question": "Tell me about the biggest Sev 1 or trust incident you personally led through.",
+      "category": "Operational Excellence & Crisis",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284cd",
+      "question": "Describe how you installed new mechanisms after a major outage.",
+      "category": "Operational Excellence & Crisis",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284cc",
+      "question": "Example where you paused feature work to fix foundational stability.",
+      "category": "Operational Excellence & Crisis",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284ce",
+      "question": "Give a case where you accepted short-term revenue hit for long-term reliability.",
+      "category": "Operational Excellence & Crisis",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284cf",
+      "question": "How do you measure and communicate operational risk to non-technical executives?",
+      "category": "Operational Excellence & Crisis",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284c4",
+      "question": "Walk me through a cross-org program that initially failed to gain traction.",
+      "category": "Stakeholder & Cross-Org Management",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284c6",
+      "question": "Tell me about your last executive-peer conflict and how you resolved it.",
+      "category": "Stakeholder & Cross-Org Management",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284c9",
+      "question": "Give an example where you influenced without authority via data and customer voice.",
+      "category": "Stakeholder & Cross-Org Management",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.420Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284ca",
+      "question": "Describe a time you revived a stalled initiative years after first proposing it.",
+      "category": "Stakeholder & Cross-Org Management",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.421Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284c7",
+      "question": "Example of escalating to CEO or board—what was in your doc?",
+      "category": "Stakeholder & Cross-Org Management",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.421Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284c8",
+      "question": "How do you handle competing roadmaps when all parties have legitimate goals?",
+      "category": "Stakeholder & Cross-Org Management",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.421Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284c5",
+      "question": "Describe a time you aligned Sales, Marketing, Product, and Engineering around one goal.",
+      "category": "Stakeholder & Cross-Org Management",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.421Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284a9",
+      "question": "Tell me about the boldest platform primitive you created instead of incremental fixes.",
+      "category": "Strategy, Product & Innovation",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.421Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284ac",
+      "question": "When did you sunset a product or feature? How did you decide and communicate?",
+      "category": "Strategy, Product & Innovation",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.421Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284ad",
+      "question": "Describe a time you played the long game—proposal shelved then revived years later.",
+      "category": "Strategy, Product & Innovation",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.421Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284b0",
+      "question": "Describe a “Think Big” vision you sold when customers didn’t ask for it.",
+      "category": "Strategy, Product & Innovation",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.421Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284b1",
+      "question": "Explain a time you balanced short-term revenue versus long-term trust.",
+      "category": "Strategy, Product & Innovation",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.421Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284ae",
+      "question": "Tell me about a time you entered a domain you weren’t an expert in and shipped impact quickly.",
+      "category": "Strategy, Product & Innovation",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.421Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284ab",
+      "question": "Talk about a pricing or packaging change that materially shifted adoption.",
+      "category": "Strategy, Product & Innovation",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.421Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284aa",
+      "question": "Give an example of pivoting a product’s positioning when data contradicted your hypothesis.",
+      "category": "Strategy, Product & Innovation",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.421Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284a8",
+      "question": "Walk me through a 0→1 product launch you led—insight, bets, metrics.",
+      "category": "Strategy, Product & Innovation",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.421Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284af",
+      "question": "What’s the biggest market risk to our platform in the next three years and how would you address it?",
+      "category": "Strategy, Product & Innovation",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.421Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284b4",
+      "question": "Describe a time you simplified architecture and how you measured velocity gain.",
+      "category": "Technical Trade-offs & Architecture",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.421Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284b5",
+      "question": "Tell me about a database migration you led—why, cost, pitfalls.",
+      "category": "Technical Trade-offs & Architecture",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.421Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284b6",
+      "question": "Explain a build-vs-buy decision for a platform component.",
+      "category": "Technical Trade-offs & Architecture",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.421Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284b3",
+      "question": "Walk me through a rewrite vs. refactor decision and your cost-to-unwind analysis.",
+      "category": "Technical Trade-offs & Architecture",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.421Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284b9",
+      "question": "Talk about a security or compliance trade-off you refused to make.",
+      "category": "Technical Trade-offs & Architecture",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.421Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284b7",
+      "question": "How do you balance operability vs. delivery speed at scale?",
+      "category": "Technical Trade-offs & Architecture",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.421Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284b8",
+      "question": "Give an example of detecting a hidden scalability limit and how you mitigated it.",
+      "category": "Technical Trade-offs & Architecture",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.421Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284ba",
+      "question": "Describe a time you made a technical call with less than 50 % of the data.",
+      "category": "Technical Trade-offs & Architecture",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.421Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284bb",
+      "question": "How do you evaluate deprecation risk before adopting third-party tech?",
+      "category": "Technical Trade-offs & Architecture",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.421Z"
+    },
+    {
+      "_id": "68391ebb56d8135a663284b2",
+      "question": "Example where you chose an immature technology—results and lessons.",
+      "category": "Technical Trade-offs & Architecture",
+      "difficulty": "medium",
+      "createdAt": "2025-06-04T08:32:28.421Z"
+    }
+  ]
+}

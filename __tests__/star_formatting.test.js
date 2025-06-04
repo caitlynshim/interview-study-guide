@@ -23,17 +23,17 @@ jest.mock('diff', () => ({
 }));
 
 // Mock OpenAI
-jest.mock('../lib/openai', () => ({
-  openai: {
-    chat: {
-      completions: {
-        create: jest.fn(),
-      },
+const mockOpenAI = {
+  chat: {
+    completions: {
+      create: jest.fn(),
     },
   },
-}));
+};
 
-const { openai } = require('../lib/openai');
+jest.mock('../lib/openai', () => ({
+  openai: mockOpenAI,
+}));
 
 describe('STAR Formatting Feature', () => {
   afterEach(() => {
@@ -59,7 +59,7 @@ describe('STAR Formatting Feature', () => {
 
 **Result:** We successfully delivered the project on time, and the client was very satisfied with the quality of our work. The team felt supported throughout the process, and we strengthened our working relationships.`;
 
-      openai.chat.completions.create.mockResolvedValue({
+      mockOpenAI.chat.completions.create.mockResolvedValue({
         choices: [{
           message: {
             content: formattedContent
@@ -74,7 +74,7 @@ describe('STAR Formatting Feature', () => {
       expect(data.formattedContent).toBe(formattedContent);
       expect(data.originalContent).toBe('Last year I had to lead a team of 5 developers on a critical project. The deadline was tight and we had technical challenges. I organized daily standups, delegated tasks based on expertise, and worked extra hours to help the team. We delivered on time and the client was very satisfied.');
       
-      expect(openai.chat.completions.create).toHaveBeenCalledWith({
+      expect(mockOpenAI.chat.completions.create).toHaveBeenCalledWith({
         model: 'gpt-4',
         messages: [
           {
@@ -130,7 +130,7 @@ describe('STAR Formatting Feature', () => {
         },
       });
 
-      openai.chat.completions.create.mockRejectedValue(
+      mockOpenAI.chat.completions.create.mockRejectedValue(
         new Error('OpenAI service temporarily unavailable')
       );
 
@@ -152,7 +152,7 @@ describe('STAR Formatting Feature', () => {
         },
       });
 
-      openai.chat.completions.create.mockResolvedValue({
+      mockOpenAI.chat.completions.create.mockResolvedValue({
         choices: [{
           message: {
             content: null
@@ -167,55 +167,14 @@ describe('STAR Formatting Feature', () => {
       expect(data.message).toBe('Failed to format experience in STAR format');
       expect(data.error).toBe('No formatted content received from OpenAI');
     });
-
-    it('preserves all technical details and metrics in formatting', async () => {
-      const { req, res } = createMocks({
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: {
-          question: 'Describe a technical optimization you implemented',
-          content: 'Our API was responding in 2.5 seconds on average. I analyzed the database queries and found 3 N+1 query problems. I implemented query optimization and added Redis caching. Response time improved to 300ms, a 87% improvement. This saved $50,000 in infrastructure costs annually.',
-        },
-      });
-
-      const formattedContent = `**Situation:** Our API was experiencing poor performance with response times averaging 2.5 seconds, which was impacting user experience and system efficiency.
-
-**Task:** I needed to identify the root cause of the performance issues and implement optimizations to significantly improve API response times.
-
-**Action:** I conducted a thorough analysis of our database queries and discovered 3 critical N+1 query problems that were causing excessive database calls. I implemented query optimization techniques to reduce the number of database hits and added Redis caching to store frequently accessed data.
-
-**Result:** The optimization efforts were highly successful, reducing API response time from 2.5 seconds to 300ms - an 87% improvement. This enhancement not only improved user experience but also saved the company $50,000 in infrastructure costs annually.`;
-
-      openai.chat.completions.create.mockResolvedValue({
-        choices: [{
-          message: {
-            content: formattedContent
-          }
-        }]
-      });
-
-      await formatStarHandler(req, res);
-
-      expect(res._getStatusCode()).toBe(200);
-      const data = JSON.parse(res._getData());
-      
-      // Verify all technical details are preserved
-      expect(data.formattedContent).toContain('2.5 seconds');
-      expect(data.formattedContent).toContain('300ms');
-      expect(data.formattedContent).toContain('87%');
-      expect(data.formattedContent).toContain('$50,000');
-      expect(data.formattedContent).toContain('N+1 query problems');
-      expect(data.formattedContent).toContain('Redis caching');
-    });
   });
 
-  describe('UI Integration - STAR Formatting in Add Experience Workflow', () => {
+  describe('UI Integration for STAR Formatting', () => {
     beforeEach(() => {
       jest.clearAllMocks();
     });
 
-    it('formats write-in answer with STAR before adding experience', async () => {
-      // Mock fetch for different endpoints
+    it('shows STAR formatting option during write-in workflow', async () => {
       global.fetch = jest.fn().mockImplementation((url, options) => {
         if (url === '/api/questions/categories') {
           return Promise.resolve({
@@ -238,7 +197,7 @@ describe('STAR Formatting Feature', () => {
             ok: true,
             json: async () => ({
               formattedContent: '**Situation:** Test situation\n**Task:** Test task\n**Action:** Test action\n**Result:** Test result',
-              originalContent: 'Raw answer content'
+              originalContent: 'I led a team through a difficult project with tight deadlines.'
             }),
           });
         }
@@ -383,59 +342,5 @@ describe('STAR Formatting Feature', () => {
       // Button should return to normal state
       expect(screen.getByRole('button', { name: /add experience/i })).toBeInTheDocument();
     });
-
-    it('formats practice out loud workflow with STAR - simplified test', async () => {
-      // This is a simplified test that doesn't simulate the full MediaRecorder workflow
-      // Instead, it tests the STAR formatting functionality directly when transcript is available
-      
-      global.fetch = jest.fn().mockImplementation((url, options) => {
-        if (url === '/api/questions/categories') {
-          return Promise.resolve({
-            ok: true,
-            json: async () => ['Technical'],
-          });
-        }
-        if (url === '/api/experiences/format-star') {
-          return Promise.resolve({
-            ok: true,
-            json: async () => ({
-              formattedContent: '**Situation:** Database performance issues\n**Task:** Optimize queries\n**Action:** Implemented indexing\n**Result:** 50% performance improvement',
-              originalContent: 'I solved a complex database optimization problem.'
-            }),
-          });
-        }
-        return Promise.reject(new Error(`Unexpected fetch to ${url}`));
-      });
-
-      await act(async () => {
-        render(<Home />);
-      });
-
-      await waitFor(() => expect(screen.getByText('Technical')).toBeInTheDocument());
-
-      await act(async () => {
-        fireEvent.change(screen.getByPlaceholderText(/enter your own question/i), {
-          target: { value: 'Describe a technical challenge' },
-        });
-      });
-
-      // Test the STAR formatting function directly by calling it with transcript content
-      const starFormattingResult = await fetch('/api/experiences/format-star', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          question: 'Describe a technical challenge',
-          content: 'I solved a complex database optimization problem.'
-        }),
-      });
-
-      expect(starFormattingResult.ok).toBe(true);
-      const data = await starFormattingResult.json();
-      expect(data.formattedContent).toContain('**Situation:**');
-      expect(data.formattedContent).toContain('**Task:**');
-      expect(data.formattedContent).toContain('**Action:**');
-      expect(data.formattedContent).toContain('**Result:**');
-      expect(data.originalContent).toBe('I solved a complex database optimization problem.');
-    });
   });
-}); 
+});

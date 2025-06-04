@@ -8,6 +8,8 @@
     "build": "next build",
     "start": "next start -p 3002",
     "import-questions": "node scripts/import-questions.js",
+    "setup-database": "node scripts/setup-database.js",
+    "setup-database-dry": "node scripts/setup-database.js --dry-run",
     "test": "jest"
   },
   "keywords": [],
@@ -36,6 +38,7 @@
     "identity-obj-proxy": "^3.0.0",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^30.0.0-beta.3",
+    "mongodb-memory-server": "^10.1.4",
     "msw": "^2.9.0",
     "node-mocks-http": "^1.17.2",
     "supertest": "^7.1.1",

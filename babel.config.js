@@ -1,10 +1,27 @@
 module.exports = {
-  presets: ['@babel/preset-env', '@babel/preset-react'],
-  // For Jest: transpile ESM modules like react-markdown
-  overrides: [
-    {
-      test: /node_modules[\\/]react-markdown[\\/]/,
-      presets: ['@babel/preset-env', '@babel/preset-react'],
-    },
+  presets: [
+    ['@babel/preset-env', {
+      targets: {
+        node: 'current',
+      },
+    }],
+    ['@babel/preset-react', {
+      runtime: 'automatic',
+    }],
   ],
+  plugins: [],
+  env: {
+    test: {
+      presets: [
+        ['@babel/preset-env', {
+          targets: {
+            node: 'current',
+          },
+        }],
+        ['@babel/preset-react', {
+          runtime: 'automatic',
+        }],
+      ],
+    },
+  },
 };

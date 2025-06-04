@@ -24,4 +24,9 @@ module.exports = {
       useESM: true,
     },
   },
+  transformIgnorePatterns: [
+    'node_modules/(?!(@?react-markdown|@?remark-|@?rehype-|@?unified|@?bail|@?is-plain-obj|@?trough|@?vfile|@?unist-util-|@?mdast-util-|@?micromark|@?decode-named-character-reference|@?character-entities|@?property-information|@?hast-util-|@?space-separated-tokens|@?comma-separated-tokens|@?zwitch|@?html-void-elements|@?devlop|@?ccount|@?longest-streak|@?markdown-table|@?estree-util-|@?acorn))'
+  ],
+  extensionsToTreatAsEsm: ['.jsx'],
+  preset: undefined
 }; 

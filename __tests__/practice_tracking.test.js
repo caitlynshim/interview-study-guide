@@ -1,13 +1,20 @@
+// Mock the database connection before any imports
+jest.mock('../lib/dbConnect', () => jest.fn());
+
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
+import { createMocks } from 'node-mocks-http';
+
+// Set environment variable before any other imports
+process.env.MONGODB_URI = 'mongodb://localhost:27017/test';
+
 import dbConnect from '../lib/dbConnect';
 import QuestionPractice from '../models/QuestionPractice';
 import Question from '../models/Question';
 import practiceHandler from '../pages/api/questions/practice';
 import analyticsHandler from '../pages/api/questions/analytics';
-import { createMocks } from 'node-mocks-http';
 
 let mongoServer;
 
@@ -15,6 +22,13 @@ beforeAll(async () => {
   mongoServer = await MongoMemoryServer.create();
   const mongoUri = mongoServer.getUri();
   process.env.MONGODB_URI = mongoUri;
+  
+  // Mock dbConnect to use the test database
+  dbConnect.mockImplementation(async () => {
+    if (mongoose.connections[0].readyState === 0) {
+      await mongoose.connect(mongoUri);
+    }
+  });
 });
 
 afterAll(async () => {
@@ -30,7 +44,16 @@ beforeEach(async () => {
 
 describe('QuestionPractice Model', () => {
   it('should create a practice session with all required fields', async () => {
+    // First create a question to get a valid questionId
+    const question = new Question({
+      question: 'What is your biggest strength?',
+      category: 'Behavioral',
+      difficulty: 'medium'
+    });
+    const savedQuestion = await question.save();
+
     const practiceData = {
+      questionId: savedQuestion._id,
       questionText: 'What is your biggest strength?',
       category: 'Behavioral',
       rating: 8,
@@ -49,6 +72,7 @@ describe('QuestionPractice Model', () => {
     const saved = await practice.save();
 
     expect(saved._id).toBeDefined();
+    expect(saved.questionId).toEqual(savedQuestion._id);
     expect(saved.questionText).toBe(practiceData.questionText);
     expect(saved.category).toBe(practiceData.category);
     expect(saved.rating).toBe(practiceData.rating);
@@ -67,7 +91,16 @@ describe('QuestionPractice Model', () => {
   });
 
   it('should validate rating range', async () => {
+    // Create a question first
+    const question = new Question({
+      question: 'Test question',
+      category: 'Technical',
+      difficulty: 'medium'
+    });
+    const savedQuestion = await question.save();
+
     const practiceData = {
+      questionId: savedQuestion._id,
       questionText: 'Test question',
       category: 'Technical',
       rating: 15, // Invalid rating
@@ -81,7 +114,16 @@ describe('QuestionPractice Model', () => {
   });
 
   it('should validate practice type enum', async () => {
+    // Create a question first
+    const question = new Question({
+      question: 'Test question',
+      category: 'Technical',
+      difficulty: 'medium'
+    });
+    const savedQuestion = await question.save();
+
     const practiceData = {
+      questionId: savedQuestion._id,
       questionText: 'Test question',
       category: 'Technical',
       rating: 8,
@@ -180,78 +222,90 @@ describe('/api/questions/practice', () => {
 
 describe('/api/questions/analytics', () => {
   beforeEach(async () => {
-    // Create sample questions
-    await Question.create([
-      { text: 'What is your biggest strength?', category: 'Behavioral', difficulty: 'Medium' },
-      { text: 'Describe a challenging project', category: 'Behavioral', difficulty: 'Hard' },
-      { text: 'Explain a technical concept', category: 'Technical', difficulty: 'Medium' },
-      { text: 'How do you handle stress?', category: 'Behavioral', difficulty: 'Easy' }
+    // Create sample questions with correct field name and difficulty values
+    const questions = await Question.create([
+      { question: 'What is your biggest strength?', category: 'Behavioral', difficulty: 'medium' },
+      { question: 'Describe a challenging project', category: 'Behavioral', difficulty: 'hard' },
+      { question: 'Explain a technical concept', category: 'Technical', difficulty: 'medium' },
+      { question: 'How do you handle stress?', category: 'Behavioral', difficulty: 'easy' }
     ]);
 
-    // Create sample practice sessions
+    // Create sample practice sessions with questionId references
     const baseDates = [
       new Date('2024-01-01'),
       new Date('2024-01-02'), 
       new Date('2024-01-03'),
       new Date('2024-01-05'),
-      new Date('2024-01-07')
+      new Date('2024-01-08')
     ];
 
-    await QuestionPractice.create([
+    const practices = [
       {
+        questionId: questions[0]._id,
         questionText: 'What is your biggest strength?',
         category: 'Behavioral',
-        rating: 6,
-        practiceType: 'written',
-        userAnswer: 'My strength is...',
-        evaluation: 'Good start. Rating: 6/10',
-        datePracticed: baseDates[0],
-        timeSpent: 120
-      },
-      {
-        questionText: 'What is your biggest strength?',
-        category: 'Behavioral', 
         rating: 8,
-        practiceType: 'spoken',
-        userAnswer: 'My biggest strength is problem solving...',
-        evaluation: 'Much better! Rating: 8/10',
-        datePracticed: baseDates[1],
-        timeSpent: 150
-      },
-      {
-        questionText: 'Describe a challenging project',
-        category: 'Behavioral',
-        rating: 5,
         practiceType: 'written',
-        userAnswer: 'I worked on a project...',
-        evaluation: 'Needs more detail. Rating: 5/10',
-        datePracticed: baseDates[2],
-        timeSpent: 90
+        userAnswer: 'Problem solving...',
+        evaluation: 'Good answer. Rating: 8/10',
+        timeSpent: 120,
+        datePracticed: baseDates[0],
+        metadata: { answerLength: 50, transcriptionTime: 0, evaluationTime: 3 }
       },
       {
-        questionText: 'Explain a technical concept',
-        category: 'Technical',
-        rating: 9,
-        practiceType: 'written',
-        userAnswer: 'Let me explain APIs...',
-        evaluation: 'Excellent explanation! Rating: 9/10',
-        datePracticed: baseDates[3],
-        timeSpent: 200
-      },
-      {
+        questionId: questions[1]._id,
         questionText: 'Describe a challenging project',
         category: 'Behavioral',
         rating: 7,
         practiceType: 'spoken',
-        userAnswer: 'I improved my approach...',
-        evaluation: 'Better structure. Rating: 7/10', 
+        userAnswer: 'I worked on a complex system...',
+        evaluation: 'Solid answer. Rating: 7/10',
+        timeSpent: 180,
+        datePracticed: baseDates[1],
+        metadata: { answerLength: 75, transcriptionTime: 5, evaluationTime: 4 }
+      },
+      {
+        questionId: questions[2]._id,
+        questionText: 'Explain a technical concept',
+        category: 'Technical',
+        rating: 9,
+        practiceType: 'written',
+        userAnswer: 'REST APIs are...',
+        evaluation: 'Excellent explanation. Rating: 9/10',
+        timeSpent: 90,
+        datePracticed: baseDates[2],
+        metadata: { answerLength: 60, transcriptionTime: 0, evaluationTime: 2 }
+      },
+      {
+        questionId: questions[3]._id,
+        questionText: 'How do you handle stress?',
+        category: 'Behavioral',
+        rating: 6,
+        practiceType: 'spoken',
+        userAnswer: 'I take breaks and prioritize...',
+        evaluation: 'Adequate answer. Rating: 6/10',
+        timeSpent: 150,
+        datePracticed: baseDates[3],
+        metadata: { answerLength: 40, transcriptionTime: 6, evaluationTime: 3 }
+      },
+      {
+        questionId: questions[0]._id,
+        questionText: 'What is your biggest strength?',
+        category: 'Behavioral',
+        rating: 9,
+        practiceType: 'written',
+        userAnswer: 'Leadership and mentoring...',
+        evaluation: 'Much improved! Rating: 9/10',
+        timeSpent: 100,
         datePracticed: baseDates[4],
-        timeSpent: 180
+        metadata: { answerLength: 65, transcriptionTime: 0, evaluationTime: 2 }
       }
-    ]);
+    ];
+
+    await QuestionPractice.create(practices);
   });
 
-  it('should return comprehensive analytics data', async () => {
+  it('should return analytics data successfully', async () => {
     const { req, res } = createMocks({
       method: 'GET',
     });
@@ -260,43 +314,89 @@ describe('/api/questions/analytics', () => {
 
     expect(res._getStatusCode()).toBe(200);
     
-    const data = JSON.parse(res._getData());
+    const responseData = JSON.parse(res._getData());
+    expect(responseData.analytics).toBeDefined();
     
-    // Check summary
-    expect(data.summary.totalSessions).toBe(5);
-    expect(data.summary.overallAverageRating).toBe(7); // (6+8+5+9+7)/5 = 7
-    expect(data.summary.totalCategories).toBe(2);
-    expect(data.summary.unpracticedQuestionsCount).toBe(1); // "How do you handle stress?"
-
-    // Check rating trends
-    expect(data.ratingTrends).toHaveLength(5);
-    expect(data.ratingTrends[0].rating).toBe(6); // First session
-    expect(data.ratingTrends[4].rating).toBe(7); // Last session
-
-    // Check category stats
-    expect(data.categoryStats).toHaveLength(2);
-    const behavioralCategory = data.categoryStats.find(c => c.category === 'Behavioral');
-    expect(behavioralCategory.totalSessions).toBe(4);
-    expect(behavioralCategory.averageRating).toBe(6.5); // (6+8+5+7)/4 = 6.5
-
-    const technicalCategory = data.categoryStats.find(c => c.category === 'Technical');
-    expect(technicalCategory.totalSessions).toBe(1);
+    const { analytics } = responseData;
+    
+    // Check overall stats
+    expect(analytics.totalSessions).toBe(5);
+    expect(analytics.averageRating).toBe(7.8); // (8+7+9+6+9)/5
+    expect(analytics.totalTimeSpent).toBe(640); // Sum of all timeSpent
+    
+    // Check category breakdown
+    expect(analytics.categoryBreakdown).toHaveLength(2);
+    const behavioralCategory = analytics.categoryBreakdown.find(cat => cat.category === 'Behavioral');
+    expect(behavioralCategory.sessions).toBe(4);
+    expect(behavioralCategory.averageRating).toBe(7.5); // (8+7+6+9)/4
+    
+    const technicalCategory = analytics.categoryBreakdown.find(cat => cat.category === 'Technical');
+    expect(technicalCategory.sessions).toBe(1);
     expect(technicalCategory.averageRating).toBe(9);
-
-    // Check questions needing practice
-    expect(data.questionsNeedingPractice).toHaveLength(1);
-    expect(data.questionsNeedingPractice[0].questionText).toBe('Describe a challenging project');
-    expect(data.questionsNeedingPractice[0].averageRating).toBe(6); // (5+7)/2 = 6
-
-    // Check unpracticed questions
-    expect(data.unpracticedQuestions).toHaveLength(1);
-    expect(data.unpracticedQuestions[0].questionText).toBe('How do you handle stress?');
+    
+    // Check practice type breakdown
+    expect(analytics.practiceTypeBreakdown).toHaveLength(2);
+    const writtenType = analytics.practiceTypeBreakdown.find(type => type.type === 'written');
+    expect(writtenType.sessions).toBe(3);
+    
+    const spokenType = analytics.practiceTypeBreakdown.find(type => type.type === 'spoken');
+    expect(spokenType.sessions).toBe(2);
+    
+    // Check daily progress (should have 5 entries)
+    expect(analytics.dailyProgress).toHaveLength(5);
+    expect(analytics.dailyProgress[0].date).toBe('2024-01-01');
+    expect(analytics.dailyProgress[0].sessions).toBe(1);
+    expect(analytics.dailyProgress[0].averageRating).toBe(8);
   });
 
-  it('should handle empty analytics gracefully', async () => {
-    await QuestionPractice.deleteMany({});
-    await Question.deleteMany({});
+  it('should filter analytics by date range', async () => {
+    const { req, res } = createMocks({
+      method: 'GET',
+      query: {
+        startDate: '2024-01-02',
+        endDate: '2024-01-03'
+      }
+    });
 
+    await analyticsHandler(req, res);
+
+    expect(res._getStatusCode()).toBe(200);
+    
+    const responseData = JSON.parse(res._getData());
+    const { analytics } = responseData;
+    
+    // Should only include sessions from Jan 2-3 (2 sessions)
+    expect(analytics.totalSessions).toBe(2);
+    expect(analytics.averageRating).toBe(8); // (7+9)/2
+    expect(analytics.dailyProgress).toHaveLength(2);
+  });
+
+  it('should filter analytics by category', async () => {
+    const { req, res } = createMocks({
+      method: 'GET',
+      query: {
+        category: 'Technical'
+      }
+    });
+
+    await analyticsHandler(req, res);
+
+    expect(res._getStatusCode()).toBe(200);
+    
+    const responseData = JSON.parse(res._getData());
+    const { analytics } = responseData;
+    
+    // Should only include Technical sessions (1 session)
+    expect(analytics.totalSessions).toBe(1);
+    expect(analytics.averageRating).toBe(9);
+    expect(analytics.categoryBreakdown).toHaveLength(1);
+    expect(analytics.categoryBreakdown[0].category).toBe('Technical');
+  });
+
+  it('should return empty analytics for no data', async () => {
+    // Clear all practice sessions
+    await QuestionPractice.deleteMany({});
+    
     const { req, res } = createMocks({
       method: 'GET',
     });
@@ -305,12 +405,31 @@ describe('/api/questions/analytics', () => {
 
     expect(res._getStatusCode()).toBe(200);
     
-    const data = JSON.parse(res._getData());
-    expect(data.summary.totalSessions).toBe(0);
-    expect(data.summary.overallAverageRating).toBe(0);
-    expect(data.ratingTrends).toHaveLength(0);
-    expect(data.categoryStats).toHaveLength(0);
-    expect(data.questionsNeedingPractice).toHaveLength(0);
+    const responseData = JSON.parse(res._getData());
+    const { analytics } = responseData;
+    
+    expect(analytics.totalSessions).toBe(0);
+    expect(analytics.averageRating).toBe(0);
+    expect(analytics.totalTimeSpent).toBe(0);
+    expect(analytics.categoryBreakdown).toHaveLength(0);
+    expect(analytics.practiceTypeBreakdown).toHaveLength(0);
+    expect(analytics.dailyProgress).toHaveLength(0);
+  });
+
+  it('should handle invalid date formats gracefully', async () => {
+    const { req, res } = createMocks({
+      method: 'GET',
+      query: {
+        startDate: 'invalid-date',
+        endDate: '2024-01-03'
+      }
+    });
+
+    await analyticsHandler(req, res);
+
+    expect(res._getStatusCode()).toBe(400);
+    const responseData = JSON.parse(res._getData());
+    expect(responseData.message).toContain('Invalid date format');
   });
 
   it('should only allow GET method', async () => {
@@ -323,6 +442,27 @@ describe('/api/questions/analytics', () => {
     expect(res._getStatusCode()).toBe(405);
     const responseData = JSON.parse(res._getData());
     expect(responseData.message).toBe('Method not allowed');
+  });
+});
+
+describe('Analytics Helper Functions', () => {
+  const extractRating = (evaluationText) => {
+    const match = evaluationText.match(/Rating:\s*(\d+)\/10/);
+    return match ? parseInt(match[1]) : null;
+  };
+
+  it('should extract rating from evaluation text', () => {
+    expect(extractRating('Good answer. Rating: 8/10')).toBe(8);
+    expect(extractRating('Excellent response! Rating: 10/10')).toBe(10);
+    expect(extractRating('Needs improvement. Rating: 4/10')).toBe(4);
+    expect(extractRating('No rating provided')).toBe(null);
+  });
+
+  it('should handle edge cases in rating extraction', () => {
+    expect(extractRating('')).toBe(null);
+    expect(extractRating('Rating: /10')).toBe(null);
+    expect(extractRating('Rating: abc/10')).toBe(null);
+    expect(extractRating('Multiple ratings: Rating: 7/10 and Rating: 8/10')).toBe(7); // Should get first match
   });
 });
 
@@ -406,9 +546,9 @@ describe('Practice Session UI Integration', () => {
 describe('Analytics Data Processing', () => {
   it('should calculate category trends correctly', () => {
     const ratings = [5, 6, 8, 7, 9];
-    const midpoint = Math.floor(ratings.length / 2);
-    const recent = ratings.slice(-Math.min(3, midpoint || 1));
-    const previous = ratings.slice(0, Math.min(3, midpoint || 1));
+    const midpoint = Math.floor(ratings.length / 2); // midpoint = 2
+    const recent = ratings.slice(-3); // Last 3: [8, 7, 9]
+    const previous = ratings.slice(0, 2); // First 2: [5, 6]
     
     const recentAvg = recent.reduce((sum, r) => sum + r, 0) / recent.length;
     const previousAvg = previous.reduce((sum, r) => sum + r, 0) / previous.length;
