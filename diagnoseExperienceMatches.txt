@@ -1,0 +1,76 @@
+# Diagnose Experience Matches Plan
+
+## Context
+Objective: Determine why the RAG pipeline (`/api/experiences/generate`) never finds relevant experiences and always falls back to an "I don't have any relevant experiences" response.
+
+Cluster: Atlas 8.0.9 (us-west-2) with `vector_search` index on `interview-study-guide.experiences` (embedding length 1536, cosine).
+Embeddings present for all 12 docs (verified via `scripts/diagnose-embeddings.js`).
+
+Key error patterns observed:
+1. `$vectorSearch` stage throws `numCandidates is required for approximate vector search` when `numCandidates` is omitted.
+2. `$search.knnBeta` stage throws `unrecognized field "numCandidates"` (so this cluster build rejects that option).
+3. With `knnBeta` (without `numCandidates`) the query returns **0 results** even for obviously similar text (e.g., "AWS Config").
+
+These suggest we may be:
+- Using the wrong aggregation operator for the cluster version.
+- Supplying the wrong parameters, causing the server to silently ignore the index.
+- Possibly hitting an empty recall issue due to a very low `k` or mismatched similarity metric.
+
+## Hypotheses
+H1 – `$vectorSearch` is the correct operator for this cluster, but we omitted the mandatory `numCandidates` param → pipeline fails inside the service and returns no results.
+H2 – `$search.knnBeta` _is_ supported but we are hitting a recall issue because we only request `k=100` while the collection is tiny (12).  Zero results mean something else is off.
+H3 – Incorrect index name/path referenced in the service pipeline.
+H4 – The embeddings were generated with a different model or preprocessing than expected, causing very low cosine similarity.
+
+## Immediate Action Plan (Iteration 1)
+1. Re-run interactive vector search tests **read-only** against Atlas:
+   a. `$vectorSearch` with required `numCandidates` & `limit`.
+   b. `$search.knnBeta` with/without `numCandidates`.
+2. Capture returned docs + scores – confirm we can fetch at least one document.
+3. If (1) succeeds → service pipeline bug.  If fails → embeddings/index incompatibility.
+4. Inspect similarity of a pair of embeddings (question vs doc) via local cosineSimilarity util.
+
+## Future Steps (after Iteration 1)
+5. Patch service pipeline to use the confirmed-working operator signature (keeping it read-only).
+6. Lower/raise `RELEVANCE_THRESHOLD` if similarity values are naturally low.
+7. Add Jest integration test that mocks Atlas vector response to prevent regression.
+
+---
+### Iteration Log
+(2025-06-04 T???) Created plan file & noted current hypotheses.  Next: fix `scripts/testVectorSearch.js` to include `numCandidates` and re-run.
+(2025-06-04 T???) Added safety timeout & robust error handling. `$vectorSearch` with `numCandidates=100` executes but still returns 0 documents.  `knnBeta` rejects `numCandidates`.
+
+Observed: Vector recall is zero ⇒ either index not used or vectors incomparable.  Next steps:
+- Re-run `$vectorSearch` but **remove** `numCandidates` from `knnBeta` and just `k:12` to mirror collection size, capture scores.
+- Manually compute cosine similarity of query vs each doc to inspect range, compare to RAG threshold 0.05.
+- Verify index definition path `embedding` matches schema and is numeric array.
+
+Next: fix `scripts/testVectorSearch.js` to include `numCandidates` and re-run.
+
+(2025-06-04 T???) Ran `quickSearch.js` with k=12 and `$vectorSearch` (numCandidates=100). Both stages return **0 docs**.
+(2025-06-04 T???) Verified local cosine similarity between query and each doc → top match ≈ 0.82, many > 0.79, proving embeddings are fine.
+(2025-06-04 T???) Text Search sanity-check via regex shows 6 docs with "AWS" in title, but Atlas $search text query also returns 0 docs. ⇒ Search/Vector index is present but **not indexing any documents**.
+
+⚠️ Likely root cause: Atlas Search / Vector index definition excludes these documents (e.g., `dynamic: false` with no explicit mapping) or index never finished ingesting.
+
+## Updated Next Steps (Iteration 2)
+A. Retrieve index definition JSON for `vector_search` (ask user to copy/paste or use Atlas Admin API). Key things to confirm:
+   • `mappings.dynamic` value (should be true or contains explicit embedding, title, content fields)
+   • `fields.embedding` type:=knnVector dims:1536 similarity:cosine
+   • No `filter` or `condition` that would exclude docs.
+B. If index mappings wrong, we'll recreate index (after user confirmation) with proper mapping.
+C. As interim workaround, we can fall back to **in-memory cosine** until Atlas index fixed (already validated working) ‒ but this will not scale.
+
+Awaiting index definition details from screenshots / Atlas export.  After confirmation, will propose precise fix steps and add regression test. 
+
+>> Update. The index definition is here:
+{
+  "fields": [
+    {
+      "numDimensions": 1536,
+      "path": "embedding",
+      "similarity": "cosine",
+      "type": "vector"
+    }
+  ]
+}

@@ -88,6 +88,7 @@ export default function TrackProgress() {
             <a href="/" className="spring-navbar-link">Answer a question</a>
             <a href="/add-experience" className="spring-navbar-link">Add an experience</a>
             <a href="/navigate-experiences" className="spring-navbar-link">Navigate experiences</a>
+            <a href="/manage-questions" className="spring-navbar-link">Manage questions</a>
             <a href="/track-progress" className="spring-navbar-link active">Track progress</a>
           </div>
         </nav>
@@ -159,6 +160,7 @@ export default function TrackProgress() {
             <a href="/" className="spring-navbar-link">Answer a question</a>
             <a href="/add-experience" className="spring-navbar-link">Add an experience</a>
             <a href="/navigate-experiences" className="spring-navbar-link">Navigate experiences</a>
+            <a href="/manage-questions" className="spring-navbar-link">Manage questions</a>
             <a href="/track-progress" className="spring-navbar-link active">Track progress</a>
           </div>
         </nav>
@@ -242,6 +244,7 @@ export default function TrackProgress() {
             <a href="/" className="spring-navbar-link">Answer a question</a>
             <a href="/add-experience" className="spring-navbar-link">Add an experience</a>
             <a href="/navigate-experiences" className="spring-navbar-link">Navigate experiences</a>
+            <a href="/manage-questions" className="spring-navbar-link">Manage questions</a>
             <a href="/track-progress" className="spring-navbar-link active">Track progress</a>
           </div>
         </nav>
@@ -337,6 +340,7 @@ export default function TrackProgress() {
           <a href="/" className="spring-navbar-link">Answer a question</a>
           <a href="/add-experience" className="spring-navbar-link">Add an experience</a>
           <a href="/navigate-experiences" className="spring-navbar-link">Navigate experiences</a>
+          <a href="/manage-questions" className="spring-navbar-link">Manage questions</a>
           <a href="/track-progress" className="spring-navbar-link active">Track progress</a>
         </div>
       </nav>

@@ -114,6 +114,14 @@ export default function NavigateExperiences() {
     ? experiences
     : experiences.filter(e => e.category === selectedCategory);
 
+  // Function to format content with asterisks as bullet points
+  const formatContent = (content) => {
+    if (!content) return content;
+    
+    // Replace asterisks with bullet points on new lines
+    return content.replace(/\s*\*\s*/g, '\n• ');
+  };
+
   return (
     <div className="spring-bg">
       <nav className="spring-navbar">
@@ -122,6 +130,7 @@ export default function NavigateExperiences() {
           <a href="/" className="spring-navbar-link">Answer a question</a>
           <a href="/add-experience" className="spring-navbar-link">Add an experience</a>
           <a href="/navigate-experiences" className="spring-navbar-link active">Navigate experiences</a>
+          <a href="/manage-questions" className="spring-navbar-link">Manage questions</a>
         </div>
       </nav>
       <main className="spring-main-responsive">
@@ -167,7 +176,7 @@ export default function NavigateExperiences() {
                   <div className="spring-experience-category">{exp.category || 'Uncategorized'}</div>
                   {expandedId === exp._id && editingId !== exp._id ? (
                     <div className="spring-experience-details">
-                      <div className="spring-experience-content" style={{ whiteSpace: 'pre-line', marginTop: '0.7rem' }}>{exp.content}</div>
+                      <div className="spring-experience-content" style={{ marginTop: '0.7rem' }}>{formatContent(exp.content)}</div>
                       {exp.metadata && (
                         <div className="spring-experience-metadata">
                           {exp.metadata.tags && exp.metadata.tags.length > 0 && (
@@ -402,8 +411,8 @@ export default function NavigateExperiences() {
           color: ${SPRING.text};
           border: 1.5px solid ${SPRING.accent2};
           border-radius: 20px;
-          padding: 0.45rem 1.2rem;
-          font-size: 1.01rem;
+          padding: 0.3rem 0.9rem;
+          font-size: 0.85rem;
           font-weight: 500;
           cursor: pointer;
           transition: background 0.18s, color 0.18s, border 0.18s;
@@ -441,6 +450,8 @@ export default function NavigateExperiences() {
         .spring-experience-content {
           color: ${SPRING.text};
           font-size: 1.01rem;
+          white-space: pre-line;
+          word-wrap: break-word;
         }
         .spring-error {
           color: ${SPRING.error};

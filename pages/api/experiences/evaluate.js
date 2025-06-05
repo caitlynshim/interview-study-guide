@@ -59,7 +59,7 @@ export default async function handler(req, res) {
     await dbConnect();
 
     // First, evaluate the answer quality with explicit rating requirement
-    const evaluationPrompt = `Please evaluate this interview answer and provide a detailed assessment:
+    const evaluationPrompt = `You are a technical executive evaluating an interview candidate to be your peer. You are looking for a highly technical and competent leader. I expect detailed answers that show the framework the candidate is using as well as some examples that show that framework in action. You are judging both their ability answer to the question and ability to lead a very technical team. An ideal answer is about 5 minutes long. Please research the topic at hand if you need to. Please evaluate this interview answer and provide a detailed assessment:
 
 Question: ${question}
 
@@ -67,14 +67,15 @@ Answer: ${answer}
 
 Provide constructive feedback on:
 1. Content quality and completeness
-2. Structure and clarity  
-3. Specific examples and evidence
-4. Areas for improvement
+2. Demonstration on MongoDB's competencies
+3. Structure and clarity  
+4. Specific examples and evidence
+5. Areas for improvement with specific adjustments to the answer given.
 
-**IMPORTANT: You must end your evaluation with a clear overall rating from 1-10, formatted exactly as "Overall Rating: X/10" where X is the numeric score.**
+**IMPORTANT: You must end your evaluation with a clear overall rating from 1-10, formatted exactly as "Overall Rating: X/10" where X is the numeric score. Unless the answer would take >15 mins to read, do not deduct for conciseness.**
 
 Use this scale:
-- 9-10: Exceptional answer with compelling examples and perfect structure
+- 9-10: Exceptional answer with compelling examples that are easy to understand. They have strong structure and show high compence.
 - 7-8: Strong answer with good examples and clear structure
 - 5-6: Adequate answer but lacking detail or structure
 - 3-4: Weak answer with minimal examples or poor structure  
