@@ -73,7 +73,7 @@ export default async function handler(req, res) {
     }
 
     // 3. Filter for relevance
-    const RELEVANCE_THRESHOLD = 0.2;
+    const RELEVANCE_THRESHOLD = 0.5;
 
     const relevantResults = results
       .filter(result => result.similarity >= RELEVANCE_THRESHOLD)

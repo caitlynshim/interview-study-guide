@@ -8,25 +8,23 @@
 
  ✓ Starting...
    Disabled SWC as replacement for Babel because of custom Babel configuration "babel.config.js" https://nextjs.org/docs/messages/swc-disabled
- ✓ Ready in 1311ms
+ ✓ Ready in 1237ms
    Using external babel configuration from /Users/caitlyn/interview-study-guide/babel.config.js
  ○ Compiling /_error ...
- ✓ Compiled /_error in 4.6s (256 modules)
- GET /_next/static/webpack/11b6a51bf2a97074.webpack.hot-update.json 404 in 4708ms
+ ✓ Compiled /_error in 8.7s (495 modules)
+ GET /_next/static/webpack/817657d10bbeaaeb.webpack.hot-update.json 404 in 8870ms
  ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
- GET /_next/static/webpack/11b6a51bf2a97074.webpack.hot-update.json 404 in 24ms
+ GET / 200 in 8886ms
+ GET /_next/static/webpack/817657d10bbeaaeb.webpack.hot-update.json 404 in 20ms
  ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
- ○ Compiling / ...
- ✓ Compiled / in 5.9s (499 modules)
+ GET /_next/static/webpack/817657d10bbeaaeb.webpack.hot-update.json 404 in 34ms
  ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
- GET /_next/static/webpack/11b6a51bf2a97074.webpack.hot-update.json 404 in 5526ms
- GET /track-progress 200 in 6055ms
 Warning: Received `true` for a non-boolean attribute `jsx`.
 
 If you want to write it to the DOM, pass a string instead: jsx="true" or jsx={value.toString()}.
     at style
     at div
-    at TrackProgress (webpack-internal:///./pages/track-progress.js:24:84)
+    at Home (webpack-internal:///./pages/index.js:74:86)
     at App (webpack-internal:///./node_modules/next/dist/pages/_app.js:30:1)
     at StyleRegistry (/Users/caitlyn/interview-study-guide/node_modules/styled-jsx/dist/index/index.js:449:36)
     at eU (/Users/caitlyn/interview-study-guide/node_modules/next/dist/compiled/next-server/pages.runtime.dev.js:8:20506)
@@ -34,15 +32,302 @@ If you want to write it to the DOM, pass a string instead: jsx="true" or jsx={va
     at eJ (/Users/caitlyn/interview-study-guide/node_modules/next/dist/compiled/next-server/pages.runtime.dev.js:17:3091)
     at div
     at e9 (/Users/caitlyn/interview-study-guide/node_modules/next/dist/compiled/next-server/pages.runtime.dev.js:26:761)
- GET /_next/static/webpack/11b6a51bf2a97074.webpack.hot-update.json 404 in 36ms
- ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
- GET / 200 in 6149ms
- ○ Compiling /api/questions/random ...
- ✓ Compiled /api/questions/random in 802ms (516 modules)
- GET /_next/static/webpack/11b6a51bf2a97074.webpack.hot-update.json 404 in 852ms
- ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
- GET /track-progress 200 in 1625ms
- GET / 200 in 1524ms
- ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
- GET /api/questions/random?category=Andrew%20Certain%20%2F%20Executive%20Bar-Raiser 200 in 1792ms
- GET /track-progress 200 in 115ms
+ GET / 200 in 172ms
+ GET / 200 in 89ms
+ GET / 200 in 162ms
+ ○ Compiling /api/questions/categories ...
+ ✓ Compiled /api/questions/categories in 590ms (132 modules)
+ GET /api/questions/categories 304 in 1426ms
+ ✓ Compiled /api/questions/random in 86ms (134 modules)
+ GET /api/questions/random 200 in 142ms
+ ✓ Compiled /api/experiences/generate in 153ms (141 modules)
+[RAG] Local cosine: 13 candidates, 3 above threshold 0.2
+[RAG] Generated answer using 3 relevant experiences
+ POST /api/experiences/generate 200 in 1441ms
+ ○ Compiling /navigate-experiences ...
+ ✓ Compiled /navigate-experiences in 788ms (497 modules)
+ GET /navigate-experiences 200 in 869ms
+ ✓ Compiled /api/experiences/list in 98ms (137 modules)
+[API /api/experiences/list] filter: {}
+ GET /api/experiences/list 304 in 226ms
+ GET / 200 in 67ms
+ ✓ Compiled /api/questions/categories in 90ms (141 modules)
+ GET /api/questions/categories 304 in 123ms
+ ✓ Compiled /api/experiences/generate in 60ms (143 modules)
+[RAG] Local cosine: 13 candidates, 3 above threshold 0.2
+[RAG] Generated answer using 3 relevant experiences
+ POST /api/experiences/generate 200 in 1553ms
+ GET /navigate-experiences 200 in 45ms
+[API /api/experiences/list] filter: {}
+ GET /api/experiences/list 304 in 138ms
+ GET / 200 in 28ms
+ GET /api/questions/categories 304 in 42ms
+[RAG] Local cosine: 13 candidates, 3 above threshold 0.2
+[RAG] Generated answer using 3 relevant experiences
+ POST /api/experiences/generate 200 in 1413ms
+[RAG] Local cosine: 13 candidates, 3 above threshold 0.2
+[RAG] Generated answer using 3 relevant experiences
+ POST /api/experiences/generate 200 in 911ms
+ ✓ Compiled in 146ms (116 modules)
+ ✓ Compiled /api/questions/random in 180ms (133 modules)
+ GET /api/questions/random 200 in 248ms
+ ✓ Compiled /api/experiences/generate in 86ms (140 modules)
+[RAG] Local cosine: 13 candidates, 3 above threshold 0.2
+[RAG] Generated answer using 3 relevant experiences
+ POST /api/experiences/generate 200 in 6292ms
+[RAG] Local cosine: 13 candidates, 3 above threshold 0.2
+[RAG] Generated answer using 3 relevant experiences
+ POST /api/experiences/generate 200 in 3988ms
+[RAG] Local cosine: 13 candidates, 3 above threshold 0.2
+[RAG] Generated answer using 3 relevant experiences
+ POST /api/experiences/generate 200 in 3859ms
+[RAG] Local cosine: 13 candidates, 3 above threshold 0.2
+[RAG] Generated answer using 3 relevant experiences
+ POST /api/experiences/generate 200 in 3084ms
+ ✓ Compiled in 107ms (116 modules)
+ ✓ Compiled /api/experiences/generate in 99ms (137 modules)
+[RAG] Local cosine: 13 candidates, 3 above threshold 0.2
+[RAG] Generated answer using 3 relevant experiences
+ POST /api/experiences/generate 200 in 2396ms
+ ✓ Compiled in 69ms (116 modules)
+ ✓ Compiled /api/experiences/generate in 78ms (137 modules)
+[RAG] Local cosine: 13 candidates, 3 above threshold 0.2
+[RAG] Generated answer using 3 relevant experiences
+ POST /api/experiences/generate 200 in 2264ms
+ ✓ Compiled in 69ms (116 modules)
+ ✓ Compiled /api/experiences/generate in 88ms (137 modules)
+[RAG] Local cosine: 13 candidates, 3 above threshold 0.2
+[RAG] Generated answer using 3 relevant experiences
+ POST /api/experiences/generate 200 in 4251ms
+[RAG] Local cosine: 13 candidates, 3 above threshold 0.2
+[RAG] Generated answer using 3 relevant experiences
+ POST /api/experiences/generate 200 in 2453ms
+ ✓ Compiled in 217ms (137 modules)
+[RAG] Local cosine: 13 candidates, 3 above threshold 0.5
+[RAG] Generated answer using 3 relevant experiences
+ POST /api/experiences/generate 200 in 2977ms
+ ✓ Compiled /api/questions/random in 107ms (140 modules)
+ GET /api/questions/random 200 in 150ms
+ GET /api/questions/random 200 in 32ms
+[RAG] Local cosine: 13 candidates, 3 above threshold 0.5
+[RAG] Generated answer using 3 relevant experiences
+ POST /api/experiences/generate 200 in 1809ms
+[RAG] Local cosine: 13 candidates, 3 above threshold 0.5
+[RAG] Generated answer using 3 relevant experiences
+ POST /api/experiences/generate 200 in 1564ms
+ GET /api/questions/random 200 in 34ms
+ GET /api/questions/random 200 in 35ms
+ GET /api/questions/random 200 in 44ms
+[RAG] Local cosine: 13 candidates, 3 above threshold 0.5
+[RAG] Generated answer using 3 relevant experiences
+ POST /api/experiences/generate 200 in 2968ms
+ GET /api/questions/random 200 in 36ms
+ ✓ Compiled /api/experiences/transcribe in 163ms (133 modules)
+API resolved without sending a response for /api/experiences/transcribe, this may result in stalled requests.
+[transcribe] files: {
+  audio: [
+    PersistentFile {
+      _events: [Object: null prototype],
+      _eventsCount: 1,
+      _maxListeners: undefined,
+      lastModifiedDate: 2025-06-05T09:28:12.643Z,
+      filepath: '/var/folders/m7/77wq1rjx4_781bj3sy0s685c0000gn/T/z7xhnpcc27lzrxt5ox97p90s4.webm',
+      newFilename: 'z7xhnpcc27lzrxt5ox97p90s4.webm',
+      originalFilename: 'recording.webm',
+      mimetype: 'audio/webm',
+      hashAlgorithm: false,
+      size: 4449761,
+      _writeStream: [WriteStream],
+      hash: null,
+      [Symbol(kCapture)]: false
+    }
+  ]
+}
+[transcribe] audioFile: PersistentFile {
+  _events: [Object: null prototype] { error: [Function (anonymous)] },
+  _eventsCount: 1,
+  _maxListeners: undefined,
+  lastModifiedDate: 2025-06-05T09:28:12.643Z,
+  filepath: '/var/folders/m7/77wq1rjx4_781bj3sy0s685c0000gn/T/z7xhnpcc27lzrxt5ox97p90s4.webm',
+  newFilename: 'z7xhnpcc27lzrxt5ox97p90s4.webm',
+  originalFilename: 'recording.webm',
+  mimetype: 'audio/webm',
+  hashAlgorithm: false,
+  size: 4449761,
+  _writeStream: WriteStream {
+    fd: 38,
+    path: '/var/folders/m7/77wq1rjx4_781bj3sy0s685c0000gn/T/z7xhnpcc27lzrxt5ox97p90s4.webm',
+    flags: 'w',
+    mode: 438,
+    start: undefined,
+    pos: undefined,
+    bytesWritten: 4449761,
+    _writableState: WritableState {
+      objectMode: false,
+      highWaterMark: 16384,
+      finalCalled: false,
+      needDrain: true,
+      ending: true,
+      ended: true,
+      finished: true,
+      destroyed: false,
+      decodeStrings: true,
+      defaultEncoding: 'utf8',
+      length: 0,
+      writing: false,
+      corked: 0,
+      sync: false,
+      bufferProcessing: false,
+      onwrite: [Function: bound onwrite],
+      writecb: null,
+      writelen: 0,
+      afterWriteTickInfo: null,
+      buffered: [],
+      bufferedIndex: 0,
+      allBuffers: true,
+      allNoop: true,
+      pendingcb: 0,
+      constructed: true,
+      prefinished: true,
+      errorEmitted: false,
+      emitClose: true,
+      autoDestroy: true,
+      errored: null,
+      closed: false,
+      closeEmitted: false,
+      [Symbol(kOnFinished)]: []
+    },
+    _events: [Object: null prototype] { error: [Function (anonymous)] },
+    _eventsCount: 1,
+    _maxListeners: undefined,
+    [Symbol(kFs)]: {
+      appendFile: [Function: appendFile],
+      appendFileSync: [Function: appendFileSync],
+      access: [Function: access],
+      accessSync: [Function: accessSync],
+      chown: [Function: chown],
+      chownSync: [Function: chownSync],
+      chmod: [Function: chmod],
+      chmodSync: [Function: chmodSync],
+      close: [Function: close],
+      closeSync: [Function: closeSync],
+      copyFile: [Function: copyFile],
+      copyFileSync: [Function: copyFileSync],
+      cp: [Function: cp],
+      cpSync: [Function: cpSync],
+      createReadStream: [Function: createReadStream],
+      createWriteStream: [Function: createWriteStream],
+      exists: [Function: exists],
+      existsSync: [Function: existsSync],
+      fchown: [Function: fchown],
+      fchownSync: [Function: fchownSync],
+      fchmod: [Function: fchmod],
+      fchmodSync: [Function: fchmodSync],
+      fdatasync: [Function: fdatasync],
+      fdatasyncSync: [Function: fdatasyncSync],
+      fstat: [Function: fstat],
+      fstatSync: [Function: fstatSync],
+      fsync: [Function: fsync],
+      fsyncSync: [Function: fsyncSync],
+      ftruncate: [Function: ftruncate],
+      ftruncateSync: [Function: ftruncateSync],
+      futimes: [Function: futimes],
+      futimesSync: [Function: futimesSync],
+      lchown: [Function: lchown],
+      lchownSync: [Function: lchownSync],
+      lchmod: [Function: lchmod],
+      lchmodSync: [Function: lchmodSync],
+      link: [Function: link],
+      linkSync: [Function: linkSync],
+      lstat: [Function: lstat],
+      lstatSync: [Function: lstatSync],
+      lutimes: [Function: lutimes],
+      lutimesSync: [Function: lutimesSync],
+      mkdir: [Function: mkdir],
+      mkdirSync: [Function: mkdirSync],
+      mkdtemp: [Function: mkdtemp],
+      mkdtempSync: [Function: mkdtempSync],
+      open: [Function: open],
+      openSync: [Function: openSync],
+      readdir: [Function: readdir],
+      readdirSync: [Function: readdirSync],
+      read: [Function: read],
+      readSync: [Function: readSync],
+      readv: [Function: readv],
+      readvSync: [Function: readvSync],
+      readFile: [Function: readFile],
+      readFileSync: [Function: readFileSync],
+      readlink: [Function: readlink],
+      readlinkSync: [Function: readlinkSync],
+      realpath: [Function],
+      realpathSync: [Function],
+      rename: [Function: rename],
+      renameSync: [Function: renameSync],
+      rm: [Function: rm],
+      rmSync: [Function: rmSync],
+      rmdir: [Function: rmdir],
+      rmdirSync: [Function: rmdirSync],
+      stat: [Function: stat],
+      statfs: [Function: statfs],
+      statSync: [Function: statSync],
+      statfsSync: [Function: statfsSync],
+      symlink: [Function: symlink],
+      symlinkSync: [Function: symlinkSync],
+      truncate: [Function: truncate],
+      truncateSync: [Function: truncateSync],
+      unwatchFile: [Function: unwatchFile],
+      unlink: [Function: unlink],
+      unlinkSync: [Function: unlinkSync],
+      utimes: [Function: utimes],
+      utimesSync: [Function: utimesSync],
+      watch: [Function: watch],
+      watchFile: [Function: watchFile],
+      writeFile: [Function: writeFile],
+      writeFileSync: [Function: writeFileSync],
+      write: [Function: write],
+      writeSync: [Function: writeSync],
+      writev: [Function: writev],
+      writevSync: [Function: writevSync],
+      Dirent: [class Dirent],
+      Stats: [Function: Stats],
+      ReadStream: [Getter/Setter],
+      WriteStream: [Getter/Setter],
+      FileReadStream: [Getter/Setter],
+      FileWriteStream: [Getter/Setter],
+      _toUnixTimestamp: [Function: toUnixTimestamp],
+      Dir: [class Dir],
+      opendir: [Function: opendir],
+      opendirSync: [Function: opendirSync],
+      F_OK: 0,
+      R_OK: 4,
+      W_OK: 2,
+      X_OK: 1,
+      constants: [Object: null prototype],
+      promises: [Getter]
+    },
+    [Symbol(kIsPerformingIO)]: false,
+    [Symbol(kCapture)]: false
+  },
+  hash: null,
+  [Symbol(kCapture)]: false
+}
+ POST /api/experiences/transcribe 200 in 11642ms
+ ✓ Compiled /api/experiences/evaluate in 154ms (140 modules)
+ POST /api/experiences/evaluate 200 in 16052ms
+ ✓ Compiled /api/questions/practice in 94ms (144 modules)
+ POST /api/questions/practice 201 in 160ms
+ ✓ Compiled /api/experiences/format-star in 59ms (146 modules)
+ POST /api/experiences/format-star 200 in 16526ms
+ ✓ Compiled /add-experience in 438ms (528 modules)
+ ✓ Compiled /api/experiences/add in 109ms (148 modules)
+[MIDDLEWARE] Regenerating embedding for: Tell me about a time you protected your team from churn or thrash coming from above.
+[MIDDLEWARE] Successfully regenerated embedding for: Tell me about a time you protected your team from churn or thrash coming from above.
+ POST /api/experiences/add 201 in 800ms
+ ○ Compiling /manage-questions ...
+ ✓ Compiled /manage-questions in 503ms (533 modules)
+ GET /manage-questions 200 in 546ms
+ ✓ Compiled /api/questions/list in 213ms (151 modules)
+ ✓ Compiled (153 modules)
+ GET /api/questions/categories 304 in 453ms
+ GET /api/questions/list 304 in 462ms
+ GET /api/questions/list 304 in 35ms

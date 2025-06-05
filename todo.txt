@@ -1,8 +1,2 @@
-## 2025-06-05 Dense Vector Search Migration
-- [x] Backup `test.experiences` to experiences_backup_*
-- [x] Add `embeddingBin` dense Float32 field to all existing docs
-- [x] Create Atlas index `vector_search_bin` on `embeddingBin`
-- [x] Extend Experience `pre('save')` middleware to generate `embeddingBin` on every new/updated doc
-- [x] Switch /api/experiences/generate.js to `$vectorSearch` on `embeddingBin`, keep local cosine fallback
-- [ ] Add Jest test to verify `embeddingBin` Binary subtype after save
-- [ ] Manual curl smoke-test and UI check
+- add a "Practice" to the question management page
+- fix the match experiences portion being broken
